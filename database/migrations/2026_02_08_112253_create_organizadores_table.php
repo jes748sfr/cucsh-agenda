@@ -6,22 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('organizadors', function (Blueprint $table) {
+        Schema::create('organizadores', function (Blueprint $table) {
             $table->id();
+            $table->string('nombre', 255);
+            $table->string('tel', 20)->nullable();
+            $table->string('email', 255);
+            $table->foreignId('administracion_id')
+                ->constrained('administraciones')
+                ->restrictOnDelete();
+            $table->boolean('activo')->default(true);
             $table->timestamps();
+
+            $table->unique('email', 'uk_organizador_email');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('organizadors');
+        Schema::dropIfExists('organizadores');
     }
 };
