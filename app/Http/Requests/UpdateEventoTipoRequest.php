@@ -3,26 +3,33 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventoTipoRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('catalogos.editar');
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'nombre' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('eventos_tipos', 'nombre')->ignore($this->route('eventos_tipo')),
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nombre.required' => 'El nombre del tipo de evento es obligatorio.',
+            'nombre.max' => 'El nombre no puede exceder 100 caracteres.',
+            'nombre.unique' => 'Ya existe un tipo de evento con este nombre.',
         ];
     }
 }

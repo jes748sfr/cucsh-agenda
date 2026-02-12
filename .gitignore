@@ -21,3 +21,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/docs
+GUIDELINES.md
+organizar_docs.sh
+boost.json
+.mcp.json
+CLAUDE.md

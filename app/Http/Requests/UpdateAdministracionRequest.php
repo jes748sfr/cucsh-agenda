@@ -3,26 +3,40 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateAdministracionRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Proteger registros del sistema (Global id=1, Administrativo id=2).
      */
     public function authorize(): bool
     {
-        return false;
+        if (in_array($this->route('administracion')?->id, [1, 2])) {
+            return false;
+        }
+
+        return $this->user()->can('catalogos.editar');
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'nombre' => [
+                'required',
+                'string',
+                'max:150',
+                Rule::unique('administraciones', 'nombre')->ignore($this->route('administracion')),
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nombre.required' => 'El nombre de la administración es obligatorio.',
+            'nombre.max' => 'El nombre no puede exceder 150 caracteres.',
+            'nombre.unique' => 'Ya existe una administración con este nombre.',
         ];
     }
 }
