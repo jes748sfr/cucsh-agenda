@@ -21,31 +21,44 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Catálogos - solo administrador puede gestionar
-    Route::middleware('permission:catalogos.manage')->group(function () {
-        Route::resource('eventos-tipos', EventoTipoController::class);
+    // Catálogos - lectura para usuarios con permiso, escritura solo administrador
+    Route::middleware('permission:catalogos.ver')->group(function () {
+        Route::resource('eventos-tipos', EventoTipoController::class)->only(['index', 'show']);
         Route::resource('instituciones', InstitucionController::class)
-            ->parameters(['instituciones' => 'institucion']);
+            ->parameters(['instituciones' => 'institucion'])->only(['index', 'show']);
         Route::resource('administraciones', AdministracionController::class)
-            ->parameters(['administraciones' => 'administracion']);
+            ->parameters(['administraciones' => 'administracion'])->only(['index', 'show']);
         Route::resource('organizadores', OrganizadorController::class)
-            ->parameters(['organizadores' => 'organizador']);
+            ->parameters(['organizadores' => 'organizador'])->only(['index', 'show']);
+    });
+
+    Route::middleware('role:administrador')->group(function () {
+        Route::resource('eventos-tipos', EventoTipoController::class)->except(['index', 'show']);
+        Route::resource('instituciones', InstitucionController::class)
+            ->parameters(['instituciones' => 'institucion'])->except(['index', 'show']);
+        Route::resource('administraciones', AdministracionController::class)
+            ->parameters(['administraciones' => 'administracion'])->except(['index', 'show']);
+        Route::resource('organizadores', OrganizadorController::class)
+            ->parameters(['organizadores' => 'organizador'])->except(['index', 'show']);
     });
 
     // Eventos - permisos granulares por acción
-    Route::get('eventos', [EventoController::class, 'index'])->name('eventos.index');
-    Route::middleware('permission:eventos.create')->group(function () {
+    // Orden importante: /create ANTES de /{evento} para evitar captura de "create" como parámetro
+    Route::get('eventos', [EventoController::class, 'index'])
+        ->middleware('permission:eventos.ver')->name('eventos.index');
+    Route::middleware('permission:eventos.crear')->group(function () {
         Route::get('eventos/create', [EventoController::class, 'create'])->name('eventos.create');
         Route::post('eventos', [EventoController::class, 'store'])->name('eventos.store');
     });
-    Route::get('eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
-    Route::middleware('permission:eventos.edit')->group(function () {
+    Route::get('eventos/{evento}', [EventoController::class, 'show'])
+        ->middleware('permission:eventos.ver')->name('eventos.show');
+    Route::middleware('permission:eventos.editar')->group(function () {
         Route::get('eventos/{evento}/edit', [EventoController::class, 'edit'])->name('eventos.edit');
         Route::put('eventos/{evento}', [EventoController::class, 'update'])->name('eventos.update');
         Route::patch('eventos/{evento}', [EventoController::class, 'update']);
     });
     Route::delete('eventos/{evento}', [EventoController::class, 'destroy'])
-        ->middleware('permission:eventos.delete')
+        ->middleware('permission:eventos.eliminar')
         ->name('eventos.destroy');
 });
 
