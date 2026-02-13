@@ -26,4 +26,6 @@ GUIDELINES.md
 organizar_docs.sh
 boost.json
 .mcp.json
+.claude/
 CLAUDE.md
+plan_backend_eventos.md
