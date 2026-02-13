@@ -2,10 +2,31 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $nombre
+ * @property int $eventos_tipo_id
+ * @property int $organizador_id
+ * @property string|null $ubicacion
+ * @property bool $activo
+ * @property string|null $notas_cta
+ * @property string|null $notas_servicios
+ * @property int $institucion_id
+ * @property int $usuario_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read EventoTipo $eventoTipo
+ * @property-read Organizador $organizador
+ * @property-read Institucion $institucion
+ * @property-read User $usuario
+ * @property-read Collection<int, EventoFecha> $fechas
+ */
 class Evento extends Model
 {
     protected $table = 'eventos';
