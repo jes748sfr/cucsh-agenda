@@ -9,58 +9,83 @@ use App\Models\EventoTipo;
 class EventoTipoController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listado paginado de tipos de evento.
      */
     public function index()
     {
-        //
+        $this->authorize('viewAny', EventoTipo::class);
+
+        $eventosTipos = EventoTipo::orderBy('nombre')->paginate(15);
+
+        return view('eventos-tipos.index', compact('eventosTipos'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Formulario de creacion de tipo de evento.
      */
     public function create()
     {
-        //
+        $this->authorize('create', EventoTipo::class);
+
+        return view('eventos-tipos.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacenar nuevo tipo de evento.
      */
     public function store(StoreEventoTipoRequest $request)
     {
-        //
+        $this->authorize('create', EventoTipo::class);
+
+        EventoTipo::create($request->validated());
+
+        return redirect()->route('eventos-tipos.index')
+            ->with('success', __('El tipo de evento se creo correctamente.'));
     }
 
     /**
-     * Display the specified resource.
+     * Detalle de un tipo de evento.
      */
     public function show(EventoTipo $eventoTipo)
     {
-        //
+        $this->authorize('view', $eventoTipo);
+
+        return view('eventos-tipos.show', compact('eventoTipo'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Formulario de edicion de tipo de evento.
      */
     public function edit(EventoTipo $eventoTipo)
     {
-        //
+        $this->authorize('update', $eventoTipo);
+
+        return view('eventos-tipos.edit', compact('eventoTipo'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar tipo de evento.
      */
     public function update(UpdateEventoTipoRequest $request, EventoTipo $eventoTipo)
     {
-        //
+        $this->authorize('update', $eventoTipo);
+
+        $eventoTipo->update($request->validated());
+
+        return redirect()->route('eventos-tipos.show', $eventoTipo)
+            ->with('success', __('El tipo de evento se actualizo correctamente.'));
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar tipo de evento.
      */
     public function destroy(EventoTipo $eventoTipo)
     {
-        //
+        $this->authorize('delete', $eventoTipo);
+
+        $eventoTipo->delete();
+
+        return redirect()->route('eventos-tipos.index')
+            ->with('success', __('El tipo de evento se elimino correctamente.'));
     }
 }

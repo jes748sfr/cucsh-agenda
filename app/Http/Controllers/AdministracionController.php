@@ -9,58 +9,85 @@ use App\Models\Administracion;
 class AdministracionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listado paginado de administraciones.
      */
     public function index()
     {
-        //
+        $this->authorize('viewAny', Administracion::class);
+
+        $administraciones = Administracion::orderBy('nombre')->paginate(15);
+
+        return view('administraciones.index', compact('administraciones'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Formulario de creacion de administracion.
      */
     public function create()
     {
-        //
+        $this->authorize('create', Administracion::class);
+
+        return view('administraciones.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacenar nueva administracion.
      */
     public function store(StoreAdministracionRequest $request)
     {
-        //
+        $this->authorize('create', Administracion::class);
+
+        Administracion::create($request->validated());
+
+        return redirect()->route('administraciones.index')
+            ->with('success', __('La administracion se creo correctamente.'));
     }
 
     /**
-     * Display the specified resource.
+     * Detalle de una administracion con conteo de organizadores.
      */
     public function show(Administracion $administracion)
     {
-        //
+        $this->authorize('view', $administracion);
+
+        $administracion->loadCount('organizadores');
+
+        return view('administraciones.show', compact('administracion'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Formulario de edicion de administracion.
      */
     public function edit(Administracion $administracion)
     {
-        //
+        $this->authorize('update', $administracion);
+
+        return view('administraciones.edit', compact('administracion'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar administracion.
      */
     public function update(UpdateAdministracionRequest $request, Administracion $administracion)
     {
-        //
+        $this->authorize('update', $administracion);
+
+        $administracion->update($request->validated());
+
+        return redirect()->route('administraciones.show', $administracion)
+            ->with('success', __('La administracion se actualizo correctamente.'));
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar administracion.
      */
     public function destroy(Administracion $administracion)
     {
-        //
+        $this->authorize('delete', $administracion);
+
+        $administracion->delete();
+
+        return redirect()->route('administraciones.index')
+            ->with('success', __('La administracion se elimino correctamente.'));
     }
 }

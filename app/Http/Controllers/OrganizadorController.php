@@ -4,63 +4,97 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrganizadorRequest;
 use App\Http\Requests\UpdateOrganizadorRequest;
+use App\Models\Administracion;
 use App\Models\Organizador;
 
 class OrganizadorController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Listado paginado de organizadores.
      */
     public function index()
     {
-        //
+        $this->authorize('viewAny', Organizador::class);
+
+        $organizadores = Organizador::with('administracion')
+            ->orderBy('nombre')
+            ->paginate(15);
+
+        return view('organizadores.index', compact('organizadores'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Formulario de creacion de organizador.
      */
     public function create()
     {
-        //
+        $this->authorize('create', Organizador::class);
+
+        $administraciones = Administracion::orderBy('nombre')->get();
+
+        return view('organizadores.create', compact('administraciones'));
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Almacenar nuevo organizador.
      */
     public function store(StoreOrganizadorRequest $request)
     {
-        //
+        $this->authorize('create', Organizador::class);
+
+        Organizador::create($request->validated());
+
+        return redirect()->route('organizadores.index')
+            ->with('success', __('El organizador se creo correctamente.'));
     }
 
     /**
-     * Display the specified resource.
+     * Detalle de un organizador.
      */
     public function show(Organizador $organizador)
     {
-        //
+        $this->authorize('view', $organizador);
+
+        $organizador->load('administracion');
+
+        return view('organizadores.show', compact('organizador'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Formulario de edicion de organizador.
      */
     public function edit(Organizador $organizador)
     {
-        //
+        $this->authorize('update', $organizador);
+
+        $administraciones = Administracion::orderBy('nombre')->get();
+
+        return view('organizadores.edit', compact('organizador', 'administraciones'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Actualizar organizador.
      */
     public function update(UpdateOrganizadorRequest $request, Organizador $organizador)
     {
-        //
+        $this->authorize('update', $organizador);
+
+        $organizador->update($request->validated());
+
+        return redirect()->route('organizadores.show', $organizador)
+            ->with('success', __('El organizador se actualizo correctamente.'));
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Eliminar organizador.
      */
     public function destroy(Organizador $organizador)
     {
-        //
+        $this->authorize('delete', $organizador);
+
+        $organizador->delete();
+
+        return redirect()->route('organizadores.index')
+            ->with('success', __('El organizador se elimino correctamente.'));
     }
 }
