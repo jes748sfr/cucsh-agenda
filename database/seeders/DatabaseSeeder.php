@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
         // Roles, permisos y usuario administrador
         $this->call(RolesAndPermissionsSeeder::class);
 
+        // Usuarios de prueba (editor, consultor)
+        $this->call(UserSeeder::class);
+
         // Tablas con dependencias
         $this->call([
             OrganizadorSeeder::class,

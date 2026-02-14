@@ -83,9 +83,14 @@ class InstitucionController extends Controller
     {
         $this->authorize('delete', $institucion);
 
+        if ($institucion->eventos()->exists()) {
+            return redirect()->route('instituciones.index')
+                ->with('error', __('No se puede eliminar la institución: existen eventos asociados.'));
+        }
+
         $institucion->delete();
 
         return redirect()->route('instituciones.index')
-            ->with('success', __('La institucion se elimino correctamente.'));
+            ->with('success', __('La institución se eliminó correctamente.'));
     }
 }

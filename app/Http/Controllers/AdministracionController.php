@@ -85,9 +85,14 @@ class AdministracionController extends Controller
     {
         $this->authorize('delete', $administracion);
 
+        if ($administracion->organizadores()->exists()) {
+            return redirect()->route('administraciones.index')
+                ->with('error', __('No se puede eliminar la administración: existen organizadores asociados.'));
+        }
+
         $administracion->delete();
 
         return redirect()->route('administraciones.index')
-            ->with('success', __('La administracion se elimino correctamente.'));
+            ->with('success', __('La administración se eliminó correctamente.'));
     }
 }

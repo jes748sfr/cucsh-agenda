@@ -92,9 +92,14 @@ class OrganizadorController extends Controller
     {
         $this->authorize('delete', $organizador);
 
+        if ($organizador->eventos()->exists()) {
+            return redirect()->route('organizadores.index')
+                ->with('error', __('No se puede eliminar el organizador: existen eventos asociados.'));
+        }
+
         $organizador->delete();
 
         return redirect()->route('organizadores.index')
-            ->with('success', __('El organizador se elimino correctamente.'));
+            ->with('success', __('El organizador se eliminó correctamente.'));
     }
 }

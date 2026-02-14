@@ -83,9 +83,14 @@ class EventoTipoController extends Controller
     {
         $this->authorize('delete', $eventoTipo);
 
+        if ($eventoTipo->eventos()->exists()) {
+            return redirect()->route('eventos-tipos.index')
+                ->with('error', __('No se puede eliminar el tipo de evento: existen eventos asociados.'));
+        }
+
         $eventoTipo->delete();
 
         return redirect()->route('eventos-tipos.index')
-            ->with('success', __('El tipo de evento se elimino correctamente.'));
+            ->with('success', __('El tipo de evento se eliminó correctamente.'));
     }
 }
