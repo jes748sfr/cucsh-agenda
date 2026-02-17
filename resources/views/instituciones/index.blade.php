@@ -15,20 +15,20 @@
             editing: {{ $errors->any() && old('_editing') == '1' ? 'true' : 'false' }},
             editId: '{{ old('_edit_id', '') }}',
             nombre: {{ Js::from(old('nombre', '')) }},
-            formAction: '{{ route('instituciones.store') }}',
+            formAction: '{{ url('instituciones') }}',
 
             openCreate() {
                 this.editing = false;
                 this.editId = null;
                 this.nombre = '';
-                this.formAction = '{{ route('instituciones.store') }}';
+                this.formAction = '{{ url('instituciones') }}';
                 $dispatch('open-modal', 'catalog-form');
             },
-            openEdit(id, nombre, updateUrl) {
+            openEdit(id, nombre) {
                 this.editing = true;
                 this.editId = id;
                 this.nombre = nombre;
-                this.formAction = updateUrl;
+                this.formAction = '{{ url('instituciones') }}/' + id;
                 $dispatch('open-modal', 'catalog-form');
             }
         }"
@@ -54,7 +54,7 @@
                 @forelse ($instituciones as $institucion)
                     <x-table-row striped>
                         <x-table-cell>
-                            <a href="{{ route('instituciones.show', $institucion) }}"
+                            <a href="{{ url('instituciones/' . $institucion->id) }}"
                                class="font-medium text-gray-900 hover:text-primary transition-colors">
                                 {{ $institucion->nombre }}
                             </a>
@@ -63,7 +63,7 @@
                         <x-table-actions>
                             @can('catalogos.editar')
                                 <button type="button"
-                                    @click="openEdit({{ $institucion->id }}, {{ Js::from($institucion->nombre) }}, '{{ route('instituciones.update', $institucion) }}')"
+                                    @click="openEdit({{ $institucion->id }}, {{ Js::from($institucion->nombre) }})"
                                     class="text-gray-400 hover:text-primary transition"
                                     title="Editar">
                                     <x-heroicon-o-pencil-square class="h-5 w-5" />
@@ -84,7 +84,7 @@
                     @can('catalogos.eliminar')
                         <x-confirm-delete-modal
                             name="delete-inst-{{ $institucion->id }}"
-                            :action="route('instituciones.destroy', $institucion)"
+                            :action="url('instituciones/' . $institucion->id)"
                             title="Eliminar institución"
                             :description="'Se eliminará «' . $institucion->nombre . '». Esta acción no se puede deshacer.'"
                         />
@@ -105,13 +105,13 @@
                     </x-table-row>
                 @endforelse
             </tbody>
-
-            @if ($instituciones->hasPages())
-                <x-slot name="footer">
-                    {{ $instituciones->links() }}
-                </x-slot>
-            @endif
         </x-table>
+
+        @if ($instituciones->hasPages())
+            <div class="mt-4">
+                {{ $instituciones->links() }}
+            </div>
+        @endif
 
         <x-catalog-form-modal entity-label="institución" :max-length="255" />
     </div>

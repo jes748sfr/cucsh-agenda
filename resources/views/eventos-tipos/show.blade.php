@@ -15,7 +15,7 @@
             editing: true,
             editId: '{{ $eventoTipo->id }}',
             nombre: {{ Js::from($eventoTipo->nombre) }},
-            formAction: '{{ route('eventos-tipos.update', $eventoTipo) }}'
+            formAction: '{{ url('eventos-tipos/' . $eventoTipo->id) }}'
          }"
          @if($errors->any())
          x-init="$nextTick(() => $dispatch('open-modal', 'catalog-form'))"
@@ -63,7 +63,7 @@
         @can('catalogos.eliminar')
             <x-confirm-delete-modal
                 name="delete-record"
-                :action="route('eventos-tipos.destroy', $eventoTipo)"
+                :action="url('eventos-tipos/' . $eventoTipo->id)"
                 title="Eliminar tipo de evento"
                 :description="'Se eliminará «' . $eventoTipo->nombre . '». Esta acción no se puede deshacer.'"
             />

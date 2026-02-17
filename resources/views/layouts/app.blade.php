@@ -15,7 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div x-data="{ mobileMenu: false }" class="min-h-screen bg-gray-50">
+        <div x-data="{ mobileMenu: false }" class="h-screen bg-gray-50 overflow-hidden">
 
             {{-- Overlay móvil --}}
             <div x-show="mobileMenu"
@@ -29,7 +29,7 @@
             @include('layouts.sidebar')
 
             {{-- Contenido principal --}}
-            <div class="lg:pl-64 flex flex-col min-h-screen">
+            <div class="lg:pl-64 flex flex-col h-screen">
 
                 {{-- Top bar --}}
                 <header class="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm px-4 sm:px-6">
@@ -79,7 +79,7 @@
                 </header>
 
                 {{-- Contenido de página --}}
-                <main class="flex-1 p-4 sm:p-6">
+                <main class="flex-1 overflow-y-hidden p-4 sm:p-6">
                     <x-flash-message />
                     {{ $slot }}
                 </main>

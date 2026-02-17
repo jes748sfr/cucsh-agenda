@@ -24,7 +24,8 @@ Route::middleware('auth')->group(function () {
 
     // Catalogos - lectura (catalogos.ver)
     Route::middleware('permission:catalogos.ver')->group(function () {
-        Route::resource('eventos-tipos', EventoTipoController::class)->only(['index', 'show']);
+        Route::resource('eventos-tipos', EventoTipoController::class)
+            ->parameters(['eventos-tipos' => 'eventoTipo'])->only(['index', 'show']);
         Route::resource('instituciones', InstitucionController::class)
             ->parameters(['instituciones' => 'institucion'])->only(['index', 'show']);
         Route::resource('administraciones', AdministracionController::class)
@@ -33,7 +34,8 @@ Route::middleware('auth')->group(function () {
 
     // Catalogos - escritura (role:administrador)
     Route::middleware('role:administrador')->group(function () {
-        Route::resource('eventos-tipos', EventoTipoController::class)->except(['index', 'show']);
+        Route::resource('eventos-tipos', EventoTipoController::class)
+            ->parameters(['eventos-tipos' => 'eventoTipo'])->except(['index', 'show']);
         Route::resource('instituciones', InstitucionController::class)
             ->parameters(['instituciones' => 'institucion'])->except(['index', 'show']);
         Route::resource('administraciones', AdministracionController::class)

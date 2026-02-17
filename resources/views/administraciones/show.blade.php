@@ -28,7 +28,7 @@
             editing: true,
             editId: '{{ $administracion->id }}',
             nombre: {{ Js::from($administracion->nombre) }},
-            formAction: '{{ route('administraciones.update', $administracion) }}'
+            formAction: '{{ url('administraciones/' . $administracion->id) }}'
          }"
          @if($errors->any())
          x-init="$nextTick(() => $dispatch('open-modal', 'catalog-form'))"
@@ -86,7 +86,7 @@
             @can('catalogos.eliminar')
                 <x-confirm-delete-modal
                     name="delete-record"
-                    :action="route('administraciones.destroy', $administracion)"
+                    :action="url('administraciones/' . $administracion->id)"
                     title="Eliminar administración"
                     :description="'Se eliminará «' . $administracion->nombre . '». Esta acción no se puede deshacer.'"
                 />

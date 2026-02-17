@@ -15,7 +15,7 @@
             editing: true,
             editId: '{{ $institucion->id }}',
             nombre: {{ Js::from($institucion->nombre) }},
-            formAction: '{{ route('instituciones.update', $institucion) }}'
+            formAction: '{{ url('instituciones/' . $institucion->id) }}'
          }"
          @if($errors->any())
          x-init="$nextTick(() => $dispatch('open-modal', 'catalog-form'))"
@@ -63,7 +63,7 @@
         @can('catalogos.eliminar')
             <x-confirm-delete-modal
                 name="delete-record"
-                :action="route('instituciones.destroy', $institucion)"
+                :action="url('instituciones/' . $institucion->id)"
                 title="Eliminar institución"
                 :description="'Se eliminará «' . $institucion->nombre . '». Esta acción no se puede deshacer.'"
             />

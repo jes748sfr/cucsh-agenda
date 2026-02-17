@@ -15,20 +15,20 @@
             editing: {{ $errors->any() && old('_editing') == '1' ? 'true' : 'false' }},
             editId: '{{ old('_edit_id', '') }}',
             nombre: {{ Js::from(old('nombre', '')) }},
-            formAction: '{{ route('eventos-tipos.store') }}',
+            formAction: '{{ url('eventos-tipos') }}',
 
             openCreate() {
                 this.editing = false;
                 this.editId = null;
                 this.nombre = '';
-                this.formAction = '{{ route('eventos-tipos.store') }}';
+                this.formAction = '{{ url('eventos-tipos') }}';
                 $dispatch('open-modal', 'catalog-form');
             },
-            openEdit(id, nombre, updateUrl) {
+            openEdit(id, nombre) {
                 this.editing = true;
                 this.editId = id;
                 this.nombre = nombre;
-                this.formAction = updateUrl;
+                this.formAction = '{{ url('eventos-tipos') }}/' + id;
                 $dispatch('open-modal', 'catalog-form');
             }
         }"
@@ -54,7 +54,7 @@
                 @forelse ($eventosTipos as $tipo)
                     <x-table-row striped>
                         <x-table-cell>
-                            <a href="{{ route('eventos-tipos.show', $tipo) }}"
+                            <a href="{{ url('eventos-tipos/' . $tipo->id) }}"
                                class="font-medium text-gray-900 hover:text-primary transition-colors">
                                 {{ $tipo->nombre }}
                             </a>
@@ -63,7 +63,7 @@
                         <x-table-actions>
                             @can('catalogos.editar')
                                 <button type="button"
-                                    @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }}, '{{ route('eventos-tipos.update', $tipo) }}')"
+                                    @click="openEdit({{ $tipo->id }}, {{ Js::from($tipo->nombre) }})"
                                     class="text-gray-400 hover:text-primary transition"
                                     title="Editar">
                                     <x-heroicon-o-pencil-square class="h-5 w-5" />
@@ -84,7 +84,7 @@
                     @can('catalogos.eliminar')
                         <x-confirm-delete-modal
                             name="delete-tipo-{{ $tipo->id }}"
-                            :action="route('eventos-tipos.destroy', $tipo)"
+                            :action="url('eventos-tipos/' . $tipo->id)"
                             title="Eliminar tipo de evento"
                             :description="'Se eliminará «' . $tipo->nombre . '». Esta acción no se puede deshacer.'"
                         />
@@ -105,15 +105,14 @@
                     </x-table-row>
                 @endforelse
             </tbody>
-
-            @if ($eventosTipos->hasPages())
-                <x-slot name="footer">
-                    {{ $eventosTipos->links() }}
-                </x-slot>
-            @endif
         </x-table>
 
-        {{-- Modal crear/editar --}}
+        @if ($eventosTipos->hasPages())
+            <div class="mt-4">
+                {{ $eventosTipos->links() }}
+            </div>
+        @endif
+
         <x-catalog-form-modal entity-label="tipo de evento" :max-length="100" />
     </div>
 </x-app-layout>

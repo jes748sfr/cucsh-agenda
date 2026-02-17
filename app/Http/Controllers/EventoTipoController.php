@@ -15,7 +15,7 @@ class EventoTipoController extends Controller
     {
         $this->authorize('viewAny', EventoTipo::class);
 
-        $eventosTipos = EventoTipo::orderBy('nombre')->paginate(15);
+        $eventosTipos = EventoTipo::orderBy('nombre')->paginate(12);
 
         return view('eventos-tipos.index', compact('eventosTipos'));
     }
