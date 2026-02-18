@@ -1,16 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Organizadores</h2>
-            @can('organizadores.crear')
-                <a href="{{ route('organizadores.create') }}">
-                    <x-primary-button>
-                        <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
-                        Nuevo organizador
-                    </x-primary-button>
-                </a>
-            @endcan
-        </div>
+        <h2 class="text-lg font-semibold text-gray-900">Organizadores</h2>
     </x-slot>
 
     <x-table>
@@ -85,13 +75,7 @@
                     <td colspan="4" class="px-4 py-12 text-center">
                         <x-heroicon-o-user-group class="mx-auto h-10 w-10 text-gray-300" />
                         <p class="mt-2 text-sm font-medium text-gray-700">No hay organizadores registrados</p>
-                        <p class="mt-1 text-xs text-gray-400">Los organizadores coordinan los eventos del CUCSH.</p>
-                        @can('organizadores.crear')
-                            <a href="{{ route('organizadores.create') }}"
-                               class="mt-3 inline-block text-sm font-medium text-primary hover:underline">
-                                Registrar el primero
-                            </a>
-                        @endcan
+                        <p class="mt-1 text-xs text-gray-400">Los organizadores se registran al crear un evento.</p>
                     </td>
                 </x-table-row>
             @endforelse
