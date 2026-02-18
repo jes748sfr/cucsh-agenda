@@ -79,7 +79,7 @@
                 </header>
 
                 {{-- Contenido de página --}}
-                <main class="flex-1 overflow-y-hidden p-4 sm:p-6">
+                <main class="flex-1 overflow-y-auto p-4 sm:p-6">
                     <x-flash-message />
                     {{ $slot }}
                 </main>
