@@ -52,6 +52,7 @@ class EventoApiController extends Controller
                 'backgroundColor' => '#202945',
                 'borderColor' => '#B12028',
                 'extendedProps' => [
+                    'evento_id' => $evento->id,
                     'institucion' => $evento->institucion->nombre,
                     'tipo' => $evento->eventoTipo->nombre,
                     'organizador' => $evento->organizador->nombre,

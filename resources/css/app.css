@@ -6,3 +6,12 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* FullCalendar — overrides UDG */
+.fc .fc-button-primary { background-color: #202945; border-color: #202945; }
+.fc .fc-button-primary:hover { background-color: #161d33; border-color: #161d33; }
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active { background-color: #B12028; border-color: #B12028; }
+.fc .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; color: #111827; }
+.fc .fc-event { cursor: pointer; }
+.fc .fc-daygrid-more-link { color: #202945; font-weight: 600; }

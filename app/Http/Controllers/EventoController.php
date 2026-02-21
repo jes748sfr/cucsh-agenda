@@ -20,6 +20,7 @@ class EventoController extends Controller
         $this->authorize('viewAny', Evento::class);
 
         $eventos = Evento::with(['eventoTipo', 'institucion', 'organizador.administracion'])
+            ->withCount('fechas')
             ->latest()
             ->paginate(15);
 
