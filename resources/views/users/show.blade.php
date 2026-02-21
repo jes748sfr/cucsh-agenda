@@ -14,26 +14,24 @@
             </div>
 
             <div class="flex items-center gap-2 ml-4 flex-shrink-0">
-                @if($user->id !== 1)
-                    @can('usuarios.editar', $user)
-                        <a href="{{ route('users.edit', $user) }}">
-                            <x-secondary-button>
-                                <x-heroicon-o-pencil-square class="h-4 w-4 mr-1.5 -ml-0.5" />
-                                Editar
-                            </x-secondary-button>
-                        </a>
-                    @endcan
+                @can('usuarios.editar', $user)
+                    <a href="{{ route('users.edit', $user) }}">
+                        <x-secondary-button>
+                            <x-heroicon-o-pencil-square class="h-4 w-4 mr-1.5 -ml-0.5" />
+                            Editar
+                        </x-secondary-button>
+                    </a>
+                @endcan
 
-                    @if(Auth::id() !== $user->id)
-                        @can('usuarios.eliminar', $user)
-                            <x-danger-button
-                                type="button"
-                                x-on:click="$dispatch('open-modal', 'delete-user')">
-                                <x-heroicon-o-trash class="h-4 w-4 mr-1.5 -ml-0.5" />
-                                Eliminar
-                            </x-danger-button>
-                        @endcan
-                    @endif
+                @if(Auth::id() !== $user->id)
+                    @can('usuarios.eliminar', $user)
+                        <x-danger-button
+                            type="button"
+                            x-on:click="$dispatch('open-modal', 'delete-user')">
+                            <x-heroicon-o-trash class="h-4 w-4 mr-1.5 -ml-0.5" />
+                            Eliminar
+                        </x-danger-button>
+                    @endcan
                 @endif
             </div>
         </div>
@@ -91,7 +89,7 @@
         </div>
     </div>
 
-    @if($user->id !== 1 && Auth::id() !== $user->id)
+    @if(Auth::id() !== $user->id)
         @can('usuarios.eliminar', $user)
             <x-confirm-delete-modal
                 name="delete-user"

@@ -1,9 +1,17 @@
 <x-app-layout>
+    @php
+        $back        = url()->previous();
+        $indexPath   = rtrim(parse_url(route('users.index'), PHP_URL_PATH), '/');
+        $backPath    = rtrim(parse_url($back, PHP_URL_PATH), '/');
+        // Comparacion exacta de paths: '/users' === '/users' pero '/users/2' !== '/users'
+        $backUrl     = ($backPath === $indexPath) ? $back : route('users.show', $user);
+    @endphp
+
     <x-slot name="header">
         <div class="flex items-center gap-4 min-w-0">
-            <a href="{{ route('users.show', $user) }}"
+            <a href="{{ $backUrl }}"
                class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
-               title="Volver al detalle">
+               title="Volver">
                 <x-heroicon-o-arrow-left class="h-5 w-5" />
             </a>
             <div class="min-w-0">
@@ -153,7 +161,7 @@
 
             {{-- Botones --}}
             <div class="mt-8 flex items-center justify-end gap-3">
-                <a href="{{ route('users.show', $user) }}">
+                <a href="{{ $backUrl }}">
                     <x-secondary-button type="button">Cancelar</x-secondary-button>
                 </a>
 

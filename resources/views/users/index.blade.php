@@ -122,7 +122,11 @@
                     $esProtegido = $user->id === 1;
                     $esPropioUsuario = Auth::id() === $user->id;
                 @endphp
-                <x-table-row striped>
+                <x-table-row striped
+                    x-data="{ url: '{{ route('users.show', $user) }}' }"
+                    @click="if (!$event.target.closest('a, button')) window.location.href = url"
+                    style="cursor: pointer"
+                >
                     {{-- Nombre + email --}}
                     <x-table-cell>
                         <div class="flex items-center gap-3">
