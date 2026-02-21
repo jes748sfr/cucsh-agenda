@@ -16,9 +16,13 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $users = User::with('roles')
-            ->orderBy('name')
-            ->paginate(15);
+        $query = User::with('roles')->orderBy('name');
+
+        if ($rol = request('rol')) {
+            $query->whereHas('roles', fn($q) => $q->where('name', $rol));
+        }
+
+        $users = $query->paginate(15)->withQueryString();
 
         return view('users.index', compact('users'));
     }
