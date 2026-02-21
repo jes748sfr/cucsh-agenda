@@ -52,7 +52,10 @@
 
             <tbody>
                 @forelse ($eventosTipos as $tipo)
-                    <x-table-row striped>
+                    <x-table-row striped
+                        @click="if (!$event.target.closest('a, button')) window.location.href = '{{ url('eventos-tipos/' . $tipo->id) }}'"
+                        style="cursor: pointer"
+                    >
                         <x-table-cell>
                             <a href="{{ url('eventos-tipos/' . $tipo->id) }}"
                                class="font-medium text-gray-900 hover:text-primary transition-colors">

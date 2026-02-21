@@ -15,7 +15,11 @@
 
         <tbody>
             @forelse ($organizadores as $org)
-                <x-table-row striped>
+                <x-table-row striped
+                    x-data="{ url: '{{ route('organizadores.show', $org) }}' }"
+                    @click="if (!$event.target.closest('a, button')) window.location.href = url"
+                    style="cursor: pointer"
+                >
                     {{-- Nombre + email --}}
                     <x-table-cell>
                         <div>
