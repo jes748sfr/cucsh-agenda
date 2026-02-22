@@ -238,7 +238,7 @@
                     <div class="mt-8 space-y-3">
 
                         <template x-for="(item, i) in fechas" :key="i">
-                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-7 items-end">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-8 items-end">
 
                                 {{-- Fecha --}}
                                 <div class="sm:col-span-3">
@@ -290,7 +290,7 @@
                                 </div>
 
                                 {{-- Botón eliminar fila --}}
-                                <div class="sm:col-span-full sm:flex sm:justify-end">
+                                <div class="sm:col-span-1 flex items-end justify-center pb-0.5">
                                     <button
                                         type="button"
                                         @click="if (fechas.length > 1) fechas.splice(i, 1)"
@@ -299,7 +299,7 @@
                                         title="Eliminar fecha"
                                     >
                                         <x-heroicon-o-trash class="h-4 w-4" />
-                                        <span class="sm:hidden">Eliminar fecha</span>
+                                        <span class="sm:hidden ml-1">Eliminar</span>
                                     </button>
                                 </div>
 
@@ -307,7 +307,7 @@
                         </template>
 
                         {{-- Error de fechas --}}
-                        @if ($errors->has('fechas') || $errors->has('fechas.*') || $errors->has('fechas.*.fecha') || $errors->has('fechas.*.hora_inicio') || $errors->has('fechas.*.hora_fin'))
+                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
                             <div class="rounded-md bg-red-50 border border-red-200 p-3">
                                 <div class="flex gap-2">
                                     <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -316,21 +316,6 @@
                                             <p>{{ $msg }}</p>
                                         @endforeach
                                         @foreach ($errors->get('fechas.*') as $msgs)
-                                            @foreach ($msgs as $msg)
-                                                <p>{{ $msg }}</p>
-                                            @endforeach
-                                        @endforeach
-                                        @foreach ($errors->get('fechas.*.fecha') as $msgs)
-                                            @foreach ($msgs as $msg)
-                                                <p>{{ $msg }}</p>
-                                            @endforeach
-                                        @endforeach
-                                        @foreach ($errors->get('fechas.*.hora_inicio') as $msgs)
-                                            @foreach ($msgs as $msg)
-                                                <p>{{ $msg }}</p>
-                                            @endforeach
-                                        @endforeach
-                                        @foreach ($errors->get('fechas.*.hora_fin') as $msgs)
                                             @foreach ($msgs as $msg)
                                                 <p>{{ $msg }}</p>
                                             @endforeach

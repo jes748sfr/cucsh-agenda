@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const filtroEl = document.getElementById('filtro-institucion');
 
+    // Tooltip reutilizable — se crea una sola vez
+    const tooltip = document.createElement('div');
+    tooltip.id = 'fc-tooltip';
+    tooltip.style.cssText = 'position:fixed;z-index:9999;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;font-size:13px;color:#111827;box-shadow:0 4px 12px rgba(0,0,0,0.12);pointer-events:none;max-width:260px;display:none;';
+    document.body.appendChild(tooltip);
+
+    // Formateadores de fecha y hora en español
+    const fmtFecha = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
+    const fmtHora  = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+
     const calendar = new Calendar(calendarEl, {
         plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
 
@@ -37,9 +47,11 @@ document.addEventListener('DOMContentLoaded', function () {
             url: '/api/events',
             method: 'GET',
             extraParams: function () {
-                return {
-                    institucion_id: filtroEl ? filtroEl.value : '',
-                };
+                const params = {};
+                if (filtroEl && filtroEl.value) {
+                    params.institucion_id = filtroEl.value;
+                }
+                return params;
             },
             failure: function () {
                 // Silencioso — no bloquear UI
@@ -55,22 +67,55 @@ document.addEventListener('DOMContentLoaded', function () {
         // DayGrid (vista mensual)
         dayMaxEventRows: 2,
 
-        // Click en evento → drawer Alpine.js
+        // Altura y distribución de filas
+        height: '100%',
+        expandRows: true,
+        fixedWeekCount: false,
+        eventDisplay: 'block',
+
+        // Tooltip en hover
+        eventMouseEnter: function (info) {
+            const ev    = info.event;
+            const props = ev.extendedProps;
+
+            // Contenido del tooltip
+            const fecha     = ev.start ? fmtFecha.format(ev.start) : '';
+            const horaStart = ev.start ? fmtHora.format(ev.start)  : '';
+            const horaEnd   = ev.end   ? fmtHora.format(ev.end)    : '';
+            const rango     = horaEnd ? horaStart + '\u2013' + horaEnd : horaStart;
+
+            tooltip.innerHTML =
+                '<div style="font-weight:600;margin-bottom:4px;color:#202945;">' + escapeHtml(ev.title) + '</div>' +
+                (props.tipo ? '<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">' + escapeHtml(props.tipo) + '</div>' : '') +
+                '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;">\uD83D\uDCC5 ' + escapeHtml(fecha) + ' \u00B7 ' + escapeHtml(rango) + '</div>' +
+                (props.institucion ? '<div style="font-size:12px;color:#374151;margin-top:4px;">\uD83C\uDFDB ' + escapeHtml(props.institucion) + '</div>' : '');
+
+            // Posicionar y mostrar
+            tooltip.style.display = 'block';
+
+            const x = info.jsEvent.clientX;
+            const y = info.jsEvent.clientY;
+            const tw = tooltip.offsetWidth;
+
+            // Ajuste de borde derecho del viewport
+            if (x + 12 + tw > window.innerWidth) {
+                tooltip.style.left = (x - tw - 12) + 'px';
+            } else {
+                tooltip.style.left = (x + 12) + 'px';
+            }
+            tooltip.style.top = (y - 10) + 'px';
+        },
+
+        eventMouseLeave: function () {
+            tooltip.style.display = 'none';
+        },
+
+        // Click en evento → navegar a eventos.show
         eventClick: function (info) {
             info.jsEvent.preventDefault();
-            const props = info.event.extendedProps;
-            window.dispatchEvent(new CustomEvent('show-evento', {
-                detail: {
-                    evento_id:   props.evento_id,
-                    title:       info.event.title,
-                    start:       info.event.start,
-                    end:         info.event.end,
-                    institucion: props.institucion,
-                    tipo:        props.tipo,
-                    organizador: props.organizador,
-                    ubicacion:   props.ubicacion || '',
-                },
-            }));
+            tooltip.style.display = 'none';
+            const eventoId = info.event.extendedProps.evento_id;
+            window.location.href = '/eventos/' + eventoId;
         },
     });
 
@@ -79,5 +124,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Refetch al cambiar filtro de institución
     if (filtroEl) {
         filtroEl.addEventListener('change', () => calendar.refetchEvents());
+    }
+
+    // Escapar HTML para prevenir XSS en el tooltip
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
     }
 });

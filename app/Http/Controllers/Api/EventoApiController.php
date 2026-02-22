@@ -18,8 +18,8 @@ class EventoApiController extends Controller
         $request->validate([
             'start' => ['required', 'date'],
             'end' => ['required', 'date'],
-            'institucion_id' => ['sometimes', 'integer', 'exists:instituciones,id'],
-            'eventos_tipo_id' => ['sometimes', 'integer', 'exists:eventos_tipos,id'],
+            'institucion_id' => ['nullable', 'integer', 'exists:instituciones,id'],
+            'eventos_tipo_id' => ['nullable', 'integer', 'exists:eventos_tipos,id'],
         ]);
 
         $fechas = EventoFecha::with([
