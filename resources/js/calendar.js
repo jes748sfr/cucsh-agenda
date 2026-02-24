@@ -9,15 +9,127 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const filtroEl = document.getElementById('filtro-institucion');
 
-    // Tooltip reutilizable — se crea una sola vez
+    // ── Tooltip reutilizable (se crea una sola vez) ──────────────────
     const tooltip = document.createElement('div');
     tooltip.id = 'fc-tooltip';
-    tooltip.style.cssText = 'position:fixed;z-index:9999;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;font-size:13px;color:#111827;box-shadow:0 4px 12px rgba(0,0,0,0.12);pointer-events:none;max-width:260px;display:none;';
     document.body.appendChild(tooltip);
 
+    // Iconos SVG inline (Heroicons outline 14x14)
+    const iconCalendar = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>';
+    const iconBuilding = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"/></svg>';
+
     // Formateadores de fecha y hora en español
-    const fmtFecha = new Intl.DateTimeFormat('es-MX', { weekday: 'short', day: 'numeric', month: 'short' });
-    const fmtHora  = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const fmtFecha = new Intl.DateTimeFormat('es-MX', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+    });
+    const fmtHora = new Intl.DateTimeFormat('es-MX', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+    });
+
+    // ── Utilidades de color ──────────────────────────────────────────
+
+    /**
+     * Convierte un color hexadecimal a una versión clara (tint) para fondo.
+     * Mezcla el color con blanco al porcentaje dado (0-1).
+     * @param {string} hex - Color hexadecimal (#RRGGBB)
+     * @param {number} amount - Intensidad de aclarado (0 = original, 1 = blanco)
+     * @returns {string} Color hex aclarado
+     */
+    function lightenHex(hex, amount) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        const lr = Math.round(r + (255 - r) * amount);
+        const lg = Math.round(g + (255 - g) * amount);
+        const lb = Math.round(b + (255 - b) * amount);
+
+        return '#' + [lr, lg, lb].map(function (c) {
+            return c.toString(16).padStart(2, '0');
+        }).join('');
+    }
+
+    /**
+     * Oscurece un color hex para usarlo como texto legible.
+     * @param {string} hex - Color hexadecimal
+     * @param {number} amount - Intensidad de oscurecimiento (0 = original, 1 = negro)
+     * @returns {string} Color hex oscurecido
+     */
+    function darkenHex(hex, amount) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) {
+            hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+        }
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        const dr = Math.round(r * (1 - amount));
+        const dg = Math.round(g * (1 - amount));
+        const db = Math.round(b * (1 - amount));
+
+        return '#' + [dr, dg, db].map(function (c) {
+            return c.toString(16).padStart(2, '0');
+        }).join('');
+    }
+
+    // ── Posicionamiento del tooltip ──────────────────────────────────
+
+    /**
+     * Posiciona el tooltip centrado debajo del elemento pill.
+     * Ajusta si se sale del viewport por los bordes.
+     * @param {HTMLElement} anchorEl - Elemento pill del evento
+     */
+    function positionTooltip(anchorEl) {
+        const rect = anchorEl.getBoundingClientRect();
+        const gap = 8;
+
+        // Posicionar invisible para medir dimensiones
+        tooltip.style.left = '0px';
+        tooltip.style.top = '0px';
+        tooltip.classList.remove('fc-tooltip-visible');
+
+        const tw = tooltip.offsetWidth;
+        const th = tooltip.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        // Centrar horizontalmente debajo del pill
+        let left = rect.left + (rect.width / 2) - (tw / 2);
+        let top = rect.bottom + gap;
+
+        // Ajuste horizontal — no salirse por la derecha
+        if (left + tw > vw - 8) {
+            left = vw - tw - 8;
+        }
+        // Ajuste horizontal — no salirse por la izquierda
+        if (left < 8) {
+            left = 8;
+        }
+
+        // Si no cabe abajo, mostrar arriba del pill
+        if (top + th > vh - 8) {
+            top = rect.top - th - gap;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+
+        // Activar transición de entrada
+        requestAnimationFrame(function () {
+            tooltip.classList.add('fc-tooltip-visible');
+        });
+    }
+
+    // ── Calendario FullCalendar ──────────────────────────────────────
 
     const calendar = new Calendar(calendarEl, {
         plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
@@ -41,6 +153,13 @@ document.addEventListener('DOMContentLoaded', function () {
             list: 'Agenda',
         },
         noEventsText: 'No hay eventos para mostrar',
+
+        // Formato de hora en pills: "10:00 AM"
+        eventTimeFormat: {
+            hour: 'numeric',
+            minute: '2-digit',
+            meridiem: 'short',
+        },
 
         // Eventos desde API
         events: {
@@ -73,48 +192,78 @@ document.addEventListener('DOMContentLoaded', function () {
         fixedWeekCount: false,
         eventDisplay: 'block',
 
-        // Tooltip en hover
+        // ── Renderizado de pills con colores dinámicos ───────────
+        // Color placeholder: #7FBCD2 — será reemplazado por el color
+        // elegido por el usuario al crear el evento
+        eventDidMount: function (info) {
+            var el = info.el;
+            // Usar el color del evento (futuro: vendrá de la BD)
+            var pillColor = info.event.backgroundColor || '#7FBCD2';
+
+            // Parsear hex a RGB
+            var hex = pillColor.replace('#', '');
+            var r = parseInt(hex.substring(0, 2), 16);
+            var g = parseInt(hex.substring(2, 4), 16);
+            var b = parseInt(hex.substring(4, 6), 16);
+
+            // Fondo con transparencia (25% opacidad)
+            el.style.backgroundColor = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.25)';
+            // Borde izquierdo sólido con el mismo color
+            el.style.borderLeft = '3px solid ' + pillColor;
+            // Texto oscuro legible en el contenedor raíz
+            el.style.color = '#1f2937';
+
+            // Asegurar que TODOS los elementos hijos tengan texto oscuro
+            // (específicamente .fc-event-time y .fc-event-title)
+            var textElements = el.querySelectorAll('.fc-event-time, .fc-event-title, .fc-event-main');
+            textElements.forEach(function (child) {
+                child.style.color = '#1f2937';
+            });
+
+            // Eliminar estilos residuales que FullCalendar aplica inline
+            el.style.borderRight = 'none';
+            el.style.borderTop = 'none';
+            el.style.borderBottom = 'none';
+        },
+
+        // ── Tooltip en hover ─────────────────────────────────────
         eventMouseEnter: function (info) {
-            const ev    = info.event;
-            const props = ev.extendedProps;
+            var ev = info.event;
+            var props = ev.extendedProps;
 
             // Contenido del tooltip
-            const fecha     = ev.start ? fmtFecha.format(ev.start) : '';
-            const horaStart = ev.start ? fmtHora.format(ev.start)  : '';
-            const horaEnd   = ev.end   ? fmtHora.format(ev.end)    : '';
-            const rango     = horaEnd ? horaStart + '\u2013' + horaEnd : horaStart;
+            var fecha = ev.start ? fmtFecha.format(ev.start) : '';
+            var horaStart = ev.start ? fmtHora.format(ev.start) : '';
+            var horaEnd = ev.end ? fmtHora.format(ev.end) : '';
+            var rango = horaEnd ? horaStart + ' \u2013 ' + horaEnd : horaStart;
 
-            tooltip.innerHTML =
-                '<div style="font-weight:600;margin-bottom:4px;color:#202945;">' + escapeHtml(ev.title) + '</div>' +
-                (props.tipo ? '<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">' + escapeHtml(props.tipo) + '</div>' : '') +
-                '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#374151;">\uD83D\uDCC5 ' + escapeHtml(fecha) + ' \u00B7 ' + escapeHtml(rango) + '</div>' +
-                (props.institucion ? '<div style="font-size:12px;color:#374151;margin-top:4px;">\uD83C\uDFDB ' + escapeHtml(props.institucion) + '</div>' : '');
+            var html = '<div class="fc-tooltip-title">' + escapeHtml(ev.title) + '</div>';
 
-            // Posicionar y mostrar
-            tooltip.style.display = 'block';
-
-            const x = info.jsEvent.clientX;
-            const y = info.jsEvent.clientY;
-            const tw = tooltip.offsetWidth;
-
-            // Ajuste de borde derecho del viewport
-            if (x + 12 + tw > window.innerWidth) {
-                tooltip.style.left = (x - tw - 12) + 'px';
-            } else {
-                tooltip.style.left = (x + 12) + 'px';
+            if (props.tipo) {
+                html += '<div class="fc-tooltip-type">' + escapeHtml(props.tipo) + '</div>';
             }
-            tooltip.style.top = (y - 10) + 'px';
+
+            html += '<div class="fc-tooltip-row">' + iconCalendar + '<span>' + escapeHtml(fecha) + ' &middot; ' + escapeHtml(rango) + '</span></div>';
+
+            if (props.institucion) {
+                html += '<div class="fc-tooltip-row">' + iconBuilding + '<span>' + escapeHtml(props.institucion) + '</span></div>';
+            }
+
+            tooltip.innerHTML = html;
+
+            // Posicionar y animar entrada
+            positionTooltip(info.el);
         },
 
         eventMouseLeave: function () {
-            tooltip.style.display = 'none';
+            tooltip.classList.remove('fc-tooltip-visible');
         },
 
         // Click en evento → navegar a eventos.show
         eventClick: function (info) {
             info.jsEvent.preventDefault();
-            tooltip.style.display = 'none';
-            const eventoId = info.event.extendedProps.evento_id;
+            tooltip.classList.remove('fc-tooltip-visible');
+            var eventoId = info.event.extendedProps.evento_id;
             window.location.href = '/eventos/' + eventoId;
         },
     });
@@ -123,13 +272,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Refetch al cambiar filtro de institución
     if (filtroEl) {
-        filtroEl.addEventListener('change', () => calendar.refetchEvents());
+        filtroEl.addEventListener('change', function () {
+            calendar.refetchEvents();
+        });
     }
 
     // Escapar HTML para prevenir XSS en el tooltip
     function escapeHtml(text) {
         if (!text) return '';
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.appendChild(document.createTextNode(text));
         return div.innerHTML;
     }

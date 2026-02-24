@@ -30,28 +30,12 @@
     font-size: 0.75rem;
 }
 .fc .fc-daygrid-day-frame {
-    padding: 1px;
+    padding: 2px 6px;
     min-height: unset;
 }
-.fc .fc-daygrid-event {
-    border-radius: 3px;
-    font-size: 0.7rem;
-    line-height: 1.3;
-    padding: 1px 4px;
-    margin: 0 2px 1px;
-    border: none;
-}
-.fc .fc-daygrid-event .fc-event-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    min-width: 0;
-    font-weight: 500;
-}
-.fc .fc-daygrid-event .fc-event-time {
-    font-size: 0.65rem;
-    opacity: 0.85;
-    flex-shrink: 0;
+.fc .fc-daygrid-day-number {
+    font-size: 0.75rem;
+    padding: 2px 4px;
 }
 .fc .fc-daygrid-more-link {
     font-size: 0.7rem;
@@ -59,7 +43,172 @@
     padding: 0 4px;
     color: #202945;
 }
-.fc .fc-daygrid-day-number {
-    font-size: 0.75rem;
-    padding: 2px 4px;
+
+/* =============================================
+   Event pills — diseño con fondo claro y borde
+   de acento izquierdo (color dinámico via JS)
+   ============================================= */
+.fc .fc-daygrid-event {
+    font-size: 0.7rem;
+    line-height: 1.3;
+    padding: 0;
+    margin: 0 0 1px;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    /* overflow:hidden en el anchor corta la pill correctamente */
+    overflow: hidden;
+}
+
+/*
+ * .fc-event-main es position:relative por FC — NO lo convertimos en flex
+ * porque el flex real ya existe en .fc-event-main-frame (hijo directo).
+ * Solo necesitamos que no crezca fuera de su contenedor.
+ */
+.fc .fc-daygrid-event .fc-event-main {
+    overflow: hidden;
+    min-width: 0;
+    padding: 2px 6px;
+}
+
+/*
+ * .fc-event-main-frame es el contenedor flex nativo de FC.
+ * Sin min-width:0 y overflow:hidden, actúa como flex item sin límite
+ * y rompe la cadena de overflow hacia abajo.
+ */
+.fc .fc-daygrid-event .fc-event-main-frame {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.fc .fc-daygrid-event .fc-event-time {
+    font-size: 0.65rem;
+    font-weight: 600;
+    opacity: 0.8;
+    /* flex-shrink:0 de FC ya aplica; evitamos que el tiempo compita con el título */
+    flex-shrink: 0;
+    margin-right: 5px;
+    padding-left: 6px;
+    color: #1f2937;
+    /* Quitar el padding:1px que FC pone en block-event time */
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/*
+ * .fc-event-title-container ya tiene flex-grow:1 flex-shrink:1 min-width:0
+ * por FC. Añadimos overflow:hidden para que actúe como límite real.
+ */
+.fc .fc-daygrid-event .fc-event-title-container {
+    overflow: hidden;
+    min-width: 0;
+}
+
+/*
+ * .fc-event-title tiene display:inline-block y position:sticky (.fc-sticky)
+ * por FC. Para ellipsis necesitamos display:block (o ancho acotado).
+ * Usamos width:100% para que tome el ancho del contenedor truncado.
+ */
+.fc .fc-daygrid-event .fc-event-title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    color: #1f2937;
+    /* Neutralizar position:sticky de .fc-sticky que puede desanclar el elemento */
+    position: static;
+    /* Quitar el padding:1px que FC pone en block-event title */
+    padding: 0;
+    /* Quitar margin de la regla .fc-event-title{margin:.5em} de FC core */
+    margin: 0;
+    /* Forzar que no exceda el contenedor padre */
+    max-width: 100%;
+}
+
+/* Vista timeGrid (semanal/diaria) — pills verticales */
+.fc .fc-timegrid-event {
+    border-radius: 0 4px 4px 0;
+    border: none;
+    overflow: hidden;
+}
+.fc .fc-timegrid-event .fc-event-time {
+    font-size: 0.68rem;
+    font-weight: 600;
+    opacity: 0.8;
+    color: #1f2937;
+}
+.fc .fc-timegrid-event .fc-event-title {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+/* Vista list (agenda) — sin borde izquierdo especial */
+.fc .fc-list-event-dot {
+    border-radius: 0;
+    width: 4px;
+    height: 16px;
+}
+
+/* =============================================
+   Tooltip — estilos base y transición
+   ============================================= */
+#fc-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #111827;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
+    pointer-events: none;
+    max-width: 280px;
+    min-width: 180px;
+
+    /* Estado oculto por defecto */
+    opacity: 0;
+    transform: translateY(-4px);
+    visibility: hidden;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+#fc-tooltip.fc-tooltip-visible {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* Tooltip: titulo */
+.fc-tooltip-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #202945;
+    font-size: 13px;
+    line-height: 1.3;
+}
+
+/* Tooltip: subtitulo (tipo de evento) */
+.fc-tooltip-type {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+/* Tooltip: filas de detalle con icono */
+.fc-tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #374151;
+    line-height: 1.4;
+}
+.fc-tooltip-row + .fc-tooltip-row {
+    margin-top: 4px;
+}
+.fc-tooltip-row svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    color: #6b7280;
 }

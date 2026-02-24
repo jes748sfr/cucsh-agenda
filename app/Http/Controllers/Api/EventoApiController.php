@@ -49,8 +49,8 @@ class EventoApiController extends Controller
                 'title' => $evento->nombre,
                 'start' => $fecha->fecha->format('Y-m-d') . 'T' . $fecha->hora_inicio->format('H:i:s'),
                 'end' => $fecha->fecha->format('Y-m-d') . 'T' . $fecha->hora_fin->format('H:i:s'),
-                'backgroundColor' => '#202945',
-                'borderColor' => '#B12028',
+                // Futuro: $evento->color cuando se implemente el campo en el formulario
+                // 'backgroundColor' => $evento->color,
                 'extendedProps' => [
                     'evento_id' => $evento->id,
                     'institucion' => $evento->institucion->nombre,
