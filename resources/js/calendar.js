@@ -7,8 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
 
-    const filtroEl = document.getElementById('filtro-institucion');
-
     // ── Tooltip reutilizable (se crea una sola vez) ──────────────────
     const tooltip = document.createElement('div');
     tooltip.id = 'fc-tooltip';
@@ -161,20 +159,32 @@ document.addEventListener('DOMContentLoaded', function () {
             meridiem: 'short',
         },
 
-        // Eventos desde API
-        events: {
-            url: '/api/events',
-            method: 'GET',
-            extraParams: function () {
-                const params = {};
-                if (filtroEl && filtroEl.value) {
-                    params.institucion_id = filtroEl.value;
-                }
-                return params;
-            },
-            failure: function () {
-                // Silencioso — no bloquear UI
-            },
+        // Eventos desde API — lee filtros del componente Alpine
+        events: function (fetchInfo, successCallback, failureCallback) {
+            var params = new URLSearchParams();
+            params.set('start', fetchInfo.startStr);
+            params.set('end', fetchInfo.endStr);
+
+            // Leer filtros del componente Alpine
+            if (window.__calendarFilters) {
+                var apiParams = window.__calendarFilters.getApiParams();
+                Object.keys(apiParams).forEach(function (key) {
+                    var value = apiParams[key];
+                    if (Array.isArray(value)) {
+                        // Serializar arrays como parametros repetidos: key=1&key=2
+                        value.forEach(function (v) {
+                            params.append(key, v);
+                        });
+                    } else {
+                        params.set(key, value);
+                    }
+                });
+            }
+
+            fetch('/api/events?' + params.toString())
+                .then(function (response) { return response.json(); })
+                .then(function (data) { successCallback(data); })
+                .catch(function () { failureCallback(); });
         },
 
         // TimeGrid (vista semanal/diaria)
@@ -270,12 +280,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     calendar.render();
 
-    // Refetch al cambiar filtro de institución
-    if (filtroEl) {
-        filtroEl.addEventListener('change', function () {
-            calendar.refetchEvents();
-        });
-    }
+    // Escuchar evento custom de refetch disparado por los tabs Alpine
+    window.addEventListener('calendar-refetch', function () {
+        calendar.refetchEvents();
+    });
 
     // Escapar HTML para prevenir XSS en el tooltip
     function escapeHtml(text) {

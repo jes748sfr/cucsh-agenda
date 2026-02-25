@@ -16,6 +16,7 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     return view('dashboard', [
         'instituciones' => \App\Models\Institucion::orderBy('nombre')->get(),
+        'administraciones' => \App\Models\Administracion::orderBy('nombre')->get(),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 

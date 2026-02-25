@@ -20,6 +20,9 @@ class EventoApiController extends Controller
             'end' => ['required', 'date'],
             'institucion_id' => ['nullable', 'integer', 'exists:instituciones,id'],
             'eventos_tipo_id' => ['nullable', 'integer', 'exists:eventos_tipos,id'],
+            'administracion_id' => ['nullable', 'integer', 'exists:administraciones,id'],
+            'administracion_ids' => ['nullable', 'array'],
+            'administracion_ids.*' => ['integer', 'exists:administraciones,id'],
         ]);
 
         $fechas = EventoFecha::with([
@@ -37,6 +40,18 @@ class EventoApiController extends Controller
 
                 if ($request->filled('eventos_tipo_id')) {
                     $query->where('eventos_tipo_id', $request->integer('eventos_tipo_id'));
+                }
+
+                // Filtrar por administracion(es) del organizador
+                if ($request->filled('administracion_ids')) {
+                    $ids = $request->input('administracion_ids');
+                    $query->whereHas('organizador', function ($q) use ($ids) {
+                        $q->whereIn('administracion_id', $ids);
+                    });
+                } elseif ($request->filled('administracion_id')) {
+                    $query->whereHas('organizador', function ($q) use ($request) {
+                        $q->where('administracion_id', $request->integer('administracion_id'));
+                    });
                 }
             })
             ->get();
