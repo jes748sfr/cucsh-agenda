@@ -134,22 +134,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Vistas
         initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,dayGridDay,listWeek',
-        },
+        headerToolbar: false,
 
         // Localización
         locale: 'es',
         firstDay: 1,
-        buttonText: {
-            today: 'Hoy',
-            month: 'Mes',
-            week: 'Semana',
-            day: 'Día',
-            list: 'Agenda',
-        },
         noEventsText: 'No hay eventos para mostrar',
 
         // Formato de hora en pills: "10:00 AM"
@@ -201,6 +190,27 @@ document.addEventListener('DOMContentLoaded', function () {
         expandRows: true,
         fixedWeekCount: false,
         eventDisplay: 'block',
+
+        // ── Badge de fecha: despachar info al componente Alpine ──
+        datesSet: function (info) {
+            // Fecha de referencia: hoy si está en el rango visible, sino el inicio de la vista
+            var hoy = new Date();
+            var ref = (hoy >= info.start && hoy < info.end) ? hoy : info.start;
+
+            var fmtMesCorto = new Intl.DateTimeFormat('es-MX', { month: 'short' });
+            var fmtMesLargo = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' });
+            var fmtDiaSemana = new Intl.DateTimeFormat('es-MX', { weekday: 'long' });
+
+            window.dispatchEvent(new CustomEvent('calendar-date-change', {
+                detail: {
+                    mesCorto: fmtMesCorto.format(ref).replace('.', '').toUpperCase(),
+                    diaNum: ref.getDate(),
+                    titulo: fmtMesLargo.format(ref),
+                    diaSemana: fmtDiaSemana.format(ref),
+                    viewType: info.view.type,
+                }
+            }));
+        },
 
         // ── Renderizado de pills con colores dinámicos ───────────
         // Color placeholder: #7FBCD2 — será reemplazado por el color
@@ -283,6 +293,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Escuchar evento custom de refetch disparado por los tabs Alpine
     window.addEventListener('calendar-refetch', function () {
         calendar.refetchEvents();
+    });
+
+    // Navegación custom: prev / next / today (botones Blade)
+    window.addEventListener('calendar-prev', function () {
+        calendar.prev();
+    });
+    window.addEventListener('calendar-next', function () {
+        calendar.next();
+    });
+    window.addEventListener('calendar-today', function () {
+        calendar.today();
+    });
+    window.addEventListener('calendar-change-view', function (e) {
+        calendar.changeView(e.detail.view);
     });
 
     // Escapar HTML para prevenir XSS en el tooltip

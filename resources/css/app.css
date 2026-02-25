@@ -41,6 +41,68 @@
     background-color: #f3f4f6;
 }
 
+/* =============================================
+   Controles de navegación custom (prev/hoy/next)
+   ============================================= */
+.cal-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    outline: none;
+}
+.cal-nav-btn:hover {
+    background-color: #f3f4f6;
+}
+.cal-nav-btn:active {
+    background-color: #e5e7eb;
+}
+.cal-nav-btn:focus-visible {
+    box-shadow: 0 0 0 2px rgba(96, 135, 210, 0.45);
+    z-index: 1;
+    position: relative;
+}
+/* Izquierdo: redondeado solo a la izquierda */
+.cal-nav-btn--left {
+    border-radius: 6px 0 0 6px;
+    padding: 0 8px;
+}
+/* Centro: sin bordes laterales duplicados */
+.cal-nav-btn--center {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+}
+/* Derecho: redondeado solo a la derecha */
+.cal-nav-btn--right {
+    border-radius: 0 6px 6px 0;
+    padding: 0 8px;
+}
+
+/* Dropdown de vista — boton con chevron */
+.cal-view-btn {
+    gap: 6px;
+    border-radius: 6px;
+    padding: 0 12px;
+    min-width: 80px;
+}
+
+/* Boton nuevo evento — ajuste de altura para alinear con controles */
+.cal-add-event-btn {
+    height: 34px;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    font-size: 0.8125rem !important;
+}
+
 /* FullCalendar — overrides UDG */
 .fc .fc-button-primary { background-color: #202945; border-color: #202945; }
 .fc .fc-button-primary:hover { background-color: #161d33; border-color: #161d33; }
