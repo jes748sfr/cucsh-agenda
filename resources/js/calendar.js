@@ -2,6 +2,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
+import interactionPlugin from '@fullcalendar/interaction';
 
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Calendario FullCalendar ──────────────────────────────────────
 
     const calendar = new Calendar(calendarEl, {
-        plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
+        plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
 
         // Vistas
         initialView: 'dayGridMonth',
@@ -193,9 +194,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // ── Badge de fecha: despachar info al componente Alpine ──
         datesSet: function (info) {
-            // Fecha de referencia: hoy si está en el rango visible, sino el inicio de la vista
             var hoy = new Date();
-            var ref = (hoy >= info.start && hoy < info.end) ? hoy : info.start;
+            var mesLogico = info.view.currentStart; // día 1 del mes/semana lógica
+            var ref;
+
+            if (info.view.type === 'dayGridMonth') {
+                // En vista mensual: mostrar hoy si estamos viendo el mes actual, sino día 1
+                var mismoMes = hoy.getFullYear() === mesLogico.getFullYear()
+                            && hoy.getMonth() === mesLogico.getMonth();
+                ref = mismoMes ? hoy : mesLogico;
+            } else {
+                // En semana/día: mostrar hoy si está en el rango visible, sino el inicio
+                ref = (hoy >= info.start && hoy < info.end) ? hoy : info.start;
+            }
 
             var fmtMesCorto = new Intl.DateTimeFormat('es-MX', { month: 'short' });
             var fmtMesLargo = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' });
@@ -277,6 +288,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         eventMouseLeave: function () {
             tooltip.classList.remove('fc-tooltip-visible');
+        },
+
+        // Click en celda de día → cambiar a vista diaria
+        dateClick: function (info) {
+            if (info.view.type === 'dayGridMonth') {
+                calendar.changeView('dayGridDay', info.dateStr);
+            }
         },
 
         // Click en evento → navegar a eventos.show

@@ -103,6 +103,38 @@
     font-size: 0.8125rem !important;
 }
 
+/* =============================================
+   Celdas de día — interacción clickeable
+   ============================================= */
+.fc .fc-daygrid-day {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.fc .fc-daygrid-day:hover {
+    background-color: rgba(32, 41, 69, 0.10);
+}
+
+/* Día actual — fondo sutil dorado UDG en lugar del amarillo genérico */
+.fc .fc-day-today {
+    background-color: rgba(232, 171, 22, 0.08) !important;
+}
+.fc .fc-day-today:hover {
+    background-color: rgba(232, 171, 22, 0.14) !important;
+}
+/* Número del día actual — badge circular con acento dorado */
+.fc .fc-day-today .fc-daygrid-day-number {
+    background-color: #e8ab16;
+    color: #ffffff;
+    font-weight: 700;
+    border-radius: 9999px;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
 /* FullCalendar — overrides UDG */
 .fc .fc-button-primary { background-color: #202945; border-color: #202945; }
 .fc .fc-button-primary:hover { background-color: #161d33; border-color: #161d33; }
