@@ -138,7 +138,7 @@
                      vistas: [
                          { key: 'dayGridMonth', label: 'Mes' },
                          { key: 'timeGridWeek', label: 'Semana' },
-                         { key: 'dayGridDay',   label: 'Dia' },
+                         { key: 'timeGridDay',   label: 'Dia' },
                          { key: 'listWeek',     label: 'Agenda' },
                      ],
                      get vistaLabel() {
@@ -162,14 +162,14 @@
                 {{-- Izquierda: Badge + texto --}}
                 <div class="flex items-center gap-3 min-w-0">
                     {{-- Badge: mes abreviado + dia grande --}}
-                    <div class="flex flex-col items-center justify-center w-14 h-14 rounded-lg bg-gray-100 border border-gray-200 flex-shrink-0">
+                    <div class="flex flex-col items-center justify-center w-16 h-16 rounded-lg bg-gray-100 border border-gray-200 flex-shrink-0">
                         <span class="text-[0.65rem] font-bold uppercase leading-none text-gray-500 tracking-wide" x-text="mesCorto"></span>
-                        <span class="text-xl font-bold leading-none text-gray-900 mt-0.5" x-text="diaNum"></span>
+                        <span class="text-2xl font-bold leading-none text-gray-900 mt-0.5" x-text="diaNum"></span>
                     </div>
                     {{-- Titulo de la vista + dia de la semana --}}
                     <div class="min-w-0">
-                        <p class="text-base font-semibold text-gray-900 capitalize" x-text="titulo"></p>
-                        <p class="text-xs text-gray-500 capitalize" x-text="diaSemana"></p>
+                        <p class="text-lg font-semibold text-gray-900 capitalize" x-text="titulo"></p>
+                        <p class="text-sm text-gray-500 capitalize" x-text="diaSemana"></p>
                     </div>
                 </div>
 

@@ -181,7 +181,14 @@ document.addEventListener('DOMContentLoaded', function () {
         slotMinTime: '07:00:00',
         slotMaxTime: '22:00:00',
         slotDuration: '00:30:00',
+        slotLabelFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: 'short',
+            omitZeroMinute: false,
+        },
         nowIndicator: true,
+        allDaySlot: false,
 
         // DayGrid (vista mensual)
         dayMaxEventRows: 2,
@@ -223,46 +230,42 @@ document.addEventListener('DOMContentLoaded', function () {
             }));
         },
 
-        // ── Renderizado de pills con colores dinámicos ───────────
-        // Color placeholder: #7FBCD2 — será reemplazado por el color
-        // elegido por el usuario al crear el evento
+        // ── Renderizado de pills con color dinámico ────────────
+        // Color por defecto: #7FBCD2 — será reemplazado por el color
+        // elegido por el usuario al registrar el evento
         eventDidMount: function (info) {
             var el = info.el;
-            // Usar el color del evento (futuro: vendrá de la BD)
             var pillColor = info.event.backgroundColor || '#7FBCD2';
 
-            // Parsear hex a RGB
+            // Parsear hex a RGB para fondo con transparencia
             var hex = pillColor.replace('#', '');
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
             var r = parseInt(hex.substring(0, 2), 16);
             var g = parseInt(hex.substring(2, 4), 16);
             var b = parseInt(hex.substring(4, 6), 16);
 
-            // Fondo con transparencia (25% opacidad)
-            el.style.backgroundColor = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.25)';
-            // Borde izquierdo sólido con el mismo color
+            // Aplicar color via CSS custom properties (accesibles desde CSS)
+            el.style.setProperty('--pill-color', pillColor);
+            el.style.setProperty('--pill-rgb', r + ', ' + g + ', ' + b);
+
+            // Estilos inline comunes a todas las vistas
+            el.style.backgroundColor = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.18)';
             el.style.borderLeft = '3px solid ' + pillColor;
-            // Texto oscuro legible en el contenedor raíz
-            el.style.color = '#1f2937';
-
-            // Asegurar que TODOS los elementos hijos tengan texto oscuro
-            // (específicamente .fc-event-time y .fc-event-title)
-            var textElements = el.querySelectorAll('.fc-event-time, .fc-event-title, .fc-event-main');
-            textElements.forEach(function (child) {
-                child.style.color = '#1f2937';
-            });
-
-            // Eliminar estilos residuales que FullCalendar aplica inline
             el.style.borderRight = 'none';
             el.style.borderTop = 'none';
             el.style.borderBottom = 'none';
+            el.style.color = '#1f2937';
         },
 
-        // ── Tooltip en hover ─────────────────────────────────────
+        // ── Tooltip en hover (solo vista mensual) ──────────────
         eventMouseEnter: function (info) {
+            if (info.view.type !== 'dayGridMonth') return;
+
             var ev = info.event;
             var props = ev.extendedProps;
 
-            // Contenido del tooltip
             var fecha = ev.start ? fmtFecha.format(ev.start) : '';
             var horaStart = ev.start ? fmtHora.format(ev.start) : '';
             var horaEnd = ev.end ? fmtHora.format(ev.end) : '';
@@ -281,8 +284,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             tooltip.innerHTML = html;
-
-            // Posicionar y animar entrada
             positionTooltip(info.el);
         },
 
@@ -293,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Click en celda de día → cambiar a vista diaria
         dateClick: function (info) {
             if (info.view.type === 'dayGridMonth') {
-                calendar.changeView('dayGridDay', info.dateStr);
+                calendar.changeView('timeGridDay', info.dateStr);
             }
         },
 

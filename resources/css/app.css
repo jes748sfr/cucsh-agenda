@@ -141,7 +141,6 @@
 .fc .fc-button-primary:not(:disabled).fc-button-active,
 .fc .fc-button-primary:not(:disabled):active { background-color: #B12028; border-color: #B12028; }
 .fc .fc-toolbar-title { font-size: 1.1rem; font-weight: 600; color: #111827; }
-.fc .fc-event { cursor: pointer; }
 .fc .fc-daygrid-more-link { color: #202945; font-weight: 600; }
 
 /* FullCalendar — vista mensual compacta */
@@ -172,102 +171,104 @@
     color: #202945;
 }
 
+/* Ocultar encabezado de columna en vista diaria (redundante con badge de fecha) */
+.fc-timeGridDay-view .fc-col-header {
+    display: none;
+}
+
 /* =============================================
-   Event pills — diseño con fondo claro y borde
-   de acento izquierdo (color dinámico via JS)
+   Event pills — base compartida (todas las vistas)
+   Color dinámico via JS (eventDidMount)
    ============================================= */
+.fc .fc-event {
+    border: none;
+    border-radius: 0 4px 4px 0;
+    overflow: hidden;
+    cursor: pointer;
+}
+.fc .fc-event-time {
+    font-weight: 600;
+    opacity: 0.8;
+    color: #1f2937;
+}
+.fc .fc-event-title {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+/* ── Vista mensual (dayGrid) — pills horizontales compactas ── */
 .fc .fc-daygrid-event {
     font-size: 0.7rem;
     line-height: 1.3;
     padding: 0;
     margin: 0 0 1px;
-    border: none;
-    border-radius: 0 4px 4px 0;
-    /* overflow:hidden en el anchor corta la pill correctamente */
-    overflow: hidden;
 }
-
-/*
- * .fc-event-main es position:relative por FC — NO lo convertimos en flex
- * porque el flex real ya existe en .fc-event-main-frame (hijo directo).
- * Solo necesitamos que no crezca fuera de su contenedor.
- */
 .fc .fc-daygrid-event .fc-event-main {
     overflow: hidden;
     min-width: 0;
     padding: 2px 6px;
 }
-
-/*
- * .fc-event-main-frame es el contenedor flex nativo de FC.
- * Sin min-width:0 y overflow:hidden, actúa como flex item sin límite
- * y rompe la cadena de overflow hacia abajo.
- */
 .fc .fc-daygrid-event .fc-event-main-frame {
     min-width: 0;
     overflow: hidden;
 }
-
 .fc .fc-daygrid-event .fc-event-time {
     font-size: 0.65rem;
-    font-weight: 600;
-    opacity: 0.8;
-    /* flex-shrink:0 de FC ya aplica; evitamos que el tiempo compita con el título */
     flex-shrink: 0;
     margin-right: 5px;
-    padding-left: 6px;
-    color: #1f2937;
-    /* Quitar el padding:1px que FC pone en block-event time */
-    padding-top: 0;
-    padding-bottom: 0;
+    padding: 0 0 0 6px;
 }
-
-/*
- * .fc-event-title-container ya tiene flex-grow:1 flex-shrink:1 min-width:0
- * por FC. Añadimos overflow:hidden para que actúe como límite real.
- */
 .fc .fc-daygrid-event .fc-event-title-container {
     overflow: hidden;
     min-width: 0;
 }
-
-/*
- * .fc-event-title tiene display:inline-block y position:sticky (.fc-sticky)
- * por FC. Para ellipsis necesitamos display:block (o ancho acotado).
- * Usamos width:100% para que tome el ancho del contenedor truncado.
- */
 .fc .fc-daygrid-event .fc-event-title {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 500;
-    color: #1f2937;
-    /* Neutralizar position:sticky de .fc-sticky que puede desanclar el elemento */
     position: static;
-    /* Quitar el padding:1px que FC pone en block-event title */
     padding: 0;
-    /* Quitar margin de la regla .fc-event-title{margin:.5em} de FC core */
     margin: 0;
-    /* Forzar que no exceda el contenedor padre */
     max-width: 100%;
 }
 
-/* Vista timeGrid (semanal/diaria) — pills verticales */
-.fc .fc-timegrid-event {
-    border-radius: 0 4px 4px 0;
-    border: none;
-    overflow: hidden;
+/* ── Vista semanal/diaria (timeGrid) — bloques verticales ── */
+.fc .fc-timegrid-event .fc-event-main {
+    padding: 4px 8px;
 }
 .fc .fc-timegrid-event .fc-event-time {
-    font-size: 0.68rem;
-    font-weight: 600;
-    opacity: 0.8;
-    color: #1f2937;
+    font-size: 0.75rem;
 }
 .fc .fc-timegrid-event .fc-event-title {
-    font-weight: 500;
-    color: #1f2937;
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+/* TimeGrid — altura generosa de slots y ancho de columna horaria */
+.fc .fc-timegrid-slot {
+    height: 4rem !important;
+}
+
+/*
+ * Ancho de la columna de horas en timeGrid (semanal/diaria).
+ *
+ * FullCalendar usa table-layout:fixed y calcula el ancho del <col> del eje
+ * midiendo el .fc-scrollgrid-shrink-cushion mas ancho (computeShrinkWidth).
+ * Forzar min-width aqui hace que la medicion devuelva un valor mayor,
+ * y FC redistribuye el espacio restante correctamente al <col> de eventos.
+ *
+ * NO usar width/min-width en .fc-timegrid-axis (el <td>) ni en el <col>
+ * directamente — eso no pasa por el algoritmo de shrink y causa overlap.
+ */
+.fc .fc-timegrid-slot-label .fc-scrollgrid-shrink-cushion,
+.fc .fc-timegrid-axis-cushion {
+    min-width: 110px;
+    padding-right: 12px;
+}
+.fc .fc-timegrid-slot-label {
+    vertical-align: top !important;
+    padding-top: 4px;
 }
 
 /* Vista list (agenda) — sin borde izquierdo especial */
