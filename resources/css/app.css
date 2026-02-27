@@ -279,6 +279,13 @@
 }
 
 /* =============================================
+   Panel lateral de detalle — transición suave
+   ============================================= */
+#calendar {
+    transition: width 0.2s ease;
+}
+
+/* =============================================
    Tooltip — estilos base y transición
    ============================================= */
 #fc-tooltip {

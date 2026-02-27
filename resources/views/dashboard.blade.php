@@ -242,16 +242,157 @@
                 </div>
             </div>
 
-            <div id="calendar" class="flex-1 min-h-0"></div>
+            {{-- Contenedor flex-row: calendario + panel lateral --}}
+            <div class="flex-1 min-h-0 flex flex-row overflow-hidden"
+                 x-data="eventPanel()"
+                 x-on:show-event-panel.window="openPanel($event.detail)"
+                 x-on:close-event-panel.window="closePanel()"
+                 x-on:calendar-date-change.window="onViewChange($event.detail.viewType)"
+            >
+                <div id="calendar" class="flex-1 min-h-0 min-w-0"></div>
+
+                {{-- Panel lateral de detalle (solo timeGridDay desktop) --}}
+                <div x-show="panelOpen"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="translate-x-full opacity-0"
+                     x-transition:enter-end="translate-x-0 opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="translate-x-0 opacity-100"
+                     x-transition:leave-end="translate-x-full opacity-0"
+                     class="w-80 flex-shrink-0 border-l border-gray-200 bg-white flex flex-col overflow-hidden"
+                >
+                    {{-- Cabecera fija --}}
+                    <div class="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 flex-shrink-0">
+                        <h3 class="text-sm font-semibold text-gray-900">Detalles del Evento</h3>
+                        <button type="button"
+                                @click="closePanel()"
+                                class="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                                title="Cerrar panel"
+                        >
+                            <x-heroicon-o-x-mark class="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {{-- Contenido scrollable --}}
+                    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
+                        {{-- Tipo de evento (subtitulo) --}}
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-udg-blue/70"
+                                  x-text="panelEvento.tipo || 'Evento'"
+                            ></span>
+                        </div>
+
+                        {{-- Titulo del evento --}}
+                        <h4 class="text-lg font-bold text-gray-900 leading-snug -mt-2"
+                            x-text="panelEvento.title || ''"
+                        ></h4>
+
+                        {{-- Separador --}}
+                        <div class="border-t border-gray-100"></div>
+
+                        {{-- Fecha y hora --}}
+                        <div class="flex items-start gap-3">
+                            <x-heroicon-o-calendar class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p class="text-sm font-medium text-gray-900" x-text="panelEvento.fechaTexto || ''"></p>
+                                <p class="text-sm text-gray-500" x-text="panelEvento.horarioTexto || ''"></p>
+                            </div>
+                        </div>
+
+                        {{-- Ubicacion e institucion --}}
+                        <div class="flex items-start gap-3">
+                            <x-heroicon-o-building-library class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p class="text-sm font-medium text-gray-900" x-text="panelEvento.ubicacion || 'Sin ubicación registrada'"></p>
+                                <p class="text-sm text-gray-500" x-text="panelEvento.institucion || ''"></p>
+                            </div>
+                        </div>
+
+                        {{-- Organizador --}}
+                        <div class="flex items-start gap-3">
+                            <x-heroicon-o-user class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <p class="text-sm text-gray-700" x-text="panelEvento.organizador || ''"></p>
+                        </div>
+
+
+
+                        {{-- Notas CTA (condicional — campo no disponible aun en API) --}}
+                        <template x-if="panelEvento.notas_cta">
+                            <div class="mt-2">
+                                <div class="border-t border-gray-100 mb-3"></div>
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-document-text class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Notas</p>
+                                        <p class="text-sm text-gray-700 whitespace-pre-line" x-text="panelEvento.notas_cta"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                    </div>
+
+                    {{-- Pie fijo --}}
+                    <div class="px-5 py-3 border-t border-gray-100 flex-shrink-0">
+                        <a :href="'/eventos/' + panelEvento.evento_id"
+                           class="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-white bg-udg-blue rounded-lg hover:bg-udg-blue/90 transition-colors"
+                        >
+                            <x-heroicon-o-arrow-top-right-on-square class="w-4 h-4" />
+                            Ver evento completo
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
 
-    @push('scripts')
+    @push('head-scripts')
         <script>
+            /**
+             * Panel lateral de detalle de evento — funcion global para Alpine.
+             * Se activa solo en vista timeGridDay en desktop (>= 1024px).
+             * calendar.js despacha 'show-event-panel' con los datos del evento.
+             *
+             * Definido en <head> para que Alpine lo encuentre al inicializarse.
+             */
+            window.eventPanel = function () {
+                return {
+                    panelOpen: false,
+                    panelEvento: {},
+
+                    openPanel(detail) {
+                        if (this.panelOpen && this.panelEvento.evento_id === detail.evento_id) {
+                            this.panelOpen = false;
+                            return;
+                        }
+                        this.panelEvento = detail;
+                        this.panelOpen = true;
+                    },
+
+                    closePanel() {
+                        this.panelOpen = false;
+                    },
+
+                    /**
+                     * Cierra el panel cuando el usuario cambia a una vista
+                     * diferente de timeGridDay.
+                     */
+                    onViewChange(viewType) {
+                        if (viewType !== 'timeGridDay') {
+                            this.panelOpen = false;
+                        }
+                    }
+                };
+            };
+
             /**
              * Filtros del calendario — expuesto como funcion global para Alpine.
              * calendar.js lee window.__calendarFilters para extraParams.
+             *
+             * Definido en <head> para que Alpine lo encuentre al inicializarse.
              */
             // IDs de todas las administraciones (generado server-side)
             const TODOS_ADMIN_IDS = @json($administraciones->pluck('id')->values());
@@ -371,6 +512,9 @@
                 };
             };
         </script>
+    @endpush
+
+    @push('scripts')
         @vite('resources/js/calendar.js')
     @endpush
 

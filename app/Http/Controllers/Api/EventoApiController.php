@@ -72,6 +72,7 @@ class EventoApiController extends Controller
                     'tipo' => $evento->eventoTipo->nombre,
                     'organizador' => $evento->organizador->nombre,
                     'ubicacion' => $evento->ubicacion,
+                    'notas_cta' => $evento->notas_cta,
                 ],
             ];
         });

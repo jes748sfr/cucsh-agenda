@@ -298,12 +298,44 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
 
-        // Click en evento → navegar a eventos.show
+        // Click en evento → panel lateral (timeGridDay desktop) o navegar a show
         eventClick: function (info) {
             info.jsEvent.preventDefault();
             tooltip.classList.remove('fc-tooltip-visible');
-            var eventoId = info.event.extendedProps.evento_id;
-            window.location.href = '/eventos/' + eventoId;
+
+            var ev = info.event;
+            var props = ev.extendedProps;
+            var eventoId = props.evento_id;
+            var isTimeGridDay = info.view.type === 'timeGridDay';
+            var isDesktop = window.innerWidth >= 1024;
+
+            if (isTimeGridDay && isDesktop) {
+                // Formatear fecha y horario para el panel
+                var fechaTexto = ev.start
+                    ? fmtFecha.format(ev.start)
+                    : '';
+                var horaStart = ev.start ? fmtHora.format(ev.start) : '';
+                var horaEnd = ev.end ? fmtHora.format(ev.end) : '';
+                var horarioTexto = horaEnd
+                    ? horaStart + ' \u2013 ' + horaEnd
+                    : horaStart;
+
+                window.dispatchEvent(new CustomEvent('show-event-panel', {
+                    detail: {
+                        evento_id: eventoId,
+                        title: ev.title,
+                        tipo: props.tipo || '',
+                        institucion: props.institucion || '',
+                        organizador: props.organizador || '',
+                        ubicacion: props.ubicacion || '',
+                        notas_cta: props.notas_cta || '',
+                        fechaTexto: fechaTexto,
+                        horarioTexto: horarioTexto,
+                    }
+                }));
+            } else {
+                window.location.href = '/eventos/' + eventoId;
+            }
         },
     });
 
