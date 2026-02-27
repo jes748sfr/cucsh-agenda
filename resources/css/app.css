@@ -235,14 +235,87 @@
 
 /* ── Vista semanal/diaria (timeGrid) — bloques verticales ── */
 .fc .fc-timegrid-event .fc-event-main {
-    padding: 4px 8px;
+    padding: 6px 10px;
+    overflow: hidden;
 }
-.fc .fc-timegrid-event .fc-event-time {
-    font-size: 0.75rem;
+/* Ocultar los elementos nativos de FC — usamos eventContent custom */
+.fc .fc-timegrid-event .fc-event-time,
+.fc .fc-timegrid-event .fc-event-title-container {
+    display: none;
 }
-.fc .fc-timegrid-event .fc-event-title {
+
+/* ── Pill custom para timeGrid (3 lineas: hora, titulo, organizador) ── */
+.fc-tg-pill {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 1px;
+    height: 100%;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* Linea 1: hora con icono reloj — muted, compacta (base: semana) */
+.fc-tg-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     font-size: 0.8rem;
-    margin-top: 2px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #4b5563;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+.fc-tg-icon {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: #6b7280;
+}
+
+/* Linea 2: titulo — prominente y legible (base: semana) */
+.fc-tg-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* Linea 3: organizador — subtitulo muted (base: semana) */
+.fc-tg-org {
+    font-size: 0.75rem;
+    font-weight: 400;
+    line-height: 1.1;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* ── Vista diaria (timeGridDay) — tamaños grandes ── */
+.fc-timeGridDay-view .fc-tg-time {
+    font-size: 1rem;
+    line-height: 2;
+    gap: 12px;
+}
+.fc-timeGridDay-view .fc-tg-icon {
+    width: 20px;
+    height: 20px;
+}
+.fc-timeGridDay-view .fc-tg-title {
+    font-size: 1.8rem;
+}
+.fc-timeGridDay-view .fc-tg-org {
+    font-size: 1rem;
 }
 
 /* TimeGrid — altura generosa de slots y ancho de columna horaria */

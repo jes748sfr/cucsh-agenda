@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const iconCalendar = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>';
     const iconBuilding = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"/></svg>';
 
+    // Icono reloj (Heroicons outline, 12x12) — usado en pills de timeGrid
+    const iconClock = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="fc-tg-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>';
+
     // Formateadores de fecha y hora en español
     const fmtFecha = new Intl.DateTimeFormat('es-MX', {
         weekday: 'short',
@@ -147,6 +150,45 @@ document.addEventListener('DOMContentLoaded', function () {
             hour: 'numeric',
             minute: '2-digit',
             meridiem: 'short',
+        },
+
+        // ── Contenido custom para pills en timeGrid ──────────────
+        eventContent: function (arg) {
+            var viewType = arg.view.type;
+
+            // Solo personalizar pills en vistas timeGrid (semanal y diaria).
+            // Retornar `true` indica a FullCalendar que use su renderizado por defecto.
+            // (Retornar `undefined` causa que FC renderice un elemento vacio.)
+            if (viewType !== 'timeGridWeek' && viewType !== 'timeGridDay') {
+                return true;
+            }
+
+            var ev = arg.event;
+            var props = ev.extendedProps;
+            var timeText = arg.timeText || '';
+            var title = ev.title || '';
+            var organizador = props.organizador || '';
+
+            // Construir HTML del pill con tres niveles de jerarquia
+            var html = '<div class="fc-tg-pill">';
+
+            // Linea 1: hora con icono de reloj
+            html += '<div class="fc-tg-time">'
+                  + iconClock
+                  + '<span>' + escapeHtml(timeText) + '</span>'
+                  + '</div>';
+
+            // Linea 2: titulo del evento (prominente)
+            html += '<div class="fc-tg-title">' + escapeHtml(title) + '</div>';
+
+            // Linea 3: organizador como subtitulo
+            if (organizador) {
+                html += '<div class="fc-tg-org">' + escapeHtml(organizador) + '</div>';
+            }
+
+            html += '</div>';
+
+            return { html: html };
         },
 
         // Eventos desde API — lee filtros del componente Alpine
