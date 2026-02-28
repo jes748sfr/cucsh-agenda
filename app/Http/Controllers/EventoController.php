@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEventoRequest;
 use App\Http\Requests\UpdateEventoRequest;
+use App\Models\Administracion;
 use App\Models\Evento;
 use App\Models\EventoTipo;
 use App\Models\Institucion;
 use App\Models\Organizador;
+use App\Models\Ubicacion;
 use Illuminate\Support\Facades\DB;
 
 class EventoController extends Controller
@@ -19,7 +21,7 @@ class EventoController extends Controller
     {
         $this->authorize('viewAny', Evento::class);
 
-        $eventos = Evento::with(['eventoTipo', 'institucion', 'organizador.administracion'])
+        $eventos = Evento::with(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel'])
             ->withCount('fechas')
             ->latest()
             ->paginate(15);
@@ -66,7 +68,7 @@ class EventoController extends Controller
     {
         $this->authorize('view', $evento);
 
-        $evento->load(['eventoTipo', 'institucion', 'organizador.administracion', 'fechas']);
+        $evento->load(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel', 'fechas']);
 
         return view('eventos.show', compact('evento'));
     }
@@ -129,6 +131,10 @@ class EventoController extends Controller
             'instituciones' => Institucion::orderBy('nombre')->get(),
             'organizadores' => Organizador::with('administracion')
                 ->where('activo', true)
+                ->orderBy('nombre')
+                ->get(),
+            'administraciones' => Administracion::orderBy('nombre')->get(),
+            'ubicaciones' => Ubicacion::where('activo', true)
                 ->orderBy('nombre')
                 ->get(),
         ];

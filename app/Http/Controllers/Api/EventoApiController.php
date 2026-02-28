@@ -29,6 +29,7 @@ class EventoApiController extends Controller
                 'evento.eventoTipo',
                 'evento.institucion',
                 'evento.organizador.administracion',
+                'evento.ubicacionRel',
             ])
             ->whereBetween('fecha', [$request->date('start'), $request->date('end')])
             ->whereHas('evento', function ($query) use ($request) {
@@ -71,7 +72,7 @@ class EventoApiController extends Controller
                     'institucion' => $evento->institucion->nombre,
                     'tipo' => $evento->eventoTipo->nombre,
                     'organizador' => $evento->organizador->nombre,
-                    'ubicacion' => $evento->ubicacion,
+                    'ubicacion' => $evento->ubicacionRel?->nombre,
                     'notas_cta' => $evento->notas_cta,
                 ],
             ];

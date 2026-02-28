@@ -20,7 +20,7 @@ class StoreEventoRequest extends FormRequest
             'eventos_tipo_id' => ['required', 'integer', 'exists:eventos_tipos,id'],
             'organizador_id' => ['required', 'integer', 'exists:organizadores,id'],
             'institucion_id' => ['required', 'integer', 'exists:instituciones,id'],
-            'ubicacion' => ['nullable', 'string', 'max:500'],
+            'ubicacion_id' => ['nullable', 'integer', 'exists:ubicaciones,id'],
             'activo' => ['sometimes', 'boolean'],
             'notas_cta' => ['nullable', 'string', 'max:5000'],
             'notas_servicios' => ['nullable', 'string', 'max:5000'],
@@ -32,51 +32,43 @@ class StoreEventoRequest extends FormRequest
     }
 
     /**
-     * Validación de solapamiento después de las reglas básicas.
+     * Validación de solapamiento por ubicación.
      */
-    public function after(): array
+    public function withValidator(Validator $validator): void
     {
-        return [
-            function (Validator $validator) {
-                if ($validator->errors()->isNotEmpty()) {
-                    return;
+        $validator->after(function (Validator $validator) {
+            $ubicacionId = $this->input('ubicacion_id');
+            $fechas = $this->input('fechas', []);
+
+            if (! $ubicacionId || empty($fechas) || $validator->errors()->hasAny(['fechas', 'ubicacion_id'])) {
+                return;
+            }
+
+            foreach ($fechas as $i => $fecha) {
+                if (empty($fecha['fecha']) || empty($fecha['hora_inicio']) || empty($fecha['hora_fin'])) {
+                    continue;
                 }
 
-                $this->validarSolapamiento($validator, null);
-            },
-        ];
-    }
-
-    /**
-     * Verificar que no existan eventos solapados en la misma institución.
-     */
-    protected function validarSolapamiento(Validator $validator, ?int $eventoId): void
-    {
-        foreach ($this->input('fechas') as $index => $fecha) {
-            $query = EventoFecha::where('fecha', $fecha['fecha'])
-                ->where(function ($q) use ($fecha) {
-                    $q->whereBetween('hora_inicio', [$fecha['hora_inicio'], $fecha['hora_fin']])
-                        ->orWhereBetween('hora_fin', [$fecha['hora_inicio'], $fecha['hora_fin']])
-                        ->orWhere(function ($q2) use ($fecha) {
-                            $q2->where('hora_inicio', '<=', $fecha['hora_inicio'])
-                                ->where('hora_fin', '>=', $fecha['hora_fin']);
+                $solapado = EventoFecha::where('fecha', $fecha['fecha'])
+                    ->where(function ($q) use ($fecha) {
+                        $q->where(function ($q2) use ($fecha) {
+                            $q2->where('hora_inicio', '<', $fecha['hora_fin'])
+                               ->where('hora_fin', '>', $fecha['hora_inicio']);
                         });
-                })
-                ->whereHas('evento', function ($q) use ($eventoId) {
-                    $q->where('institucion_id', $this->input('institucion_id'));
+                    })
+                    ->whereHas('evento', function ($q) use ($ubicacionId) {
+                        $q->where('ubicacion_id', $ubicacionId);
+                    })
+                    ->exists();
 
-                    if ($eventoId) {
-                        $q->where('id', '!=', $eventoId);
-                    }
-                });
-
-            if ($query->exists()) {
-                $validator->errors()->add(
-                    "fechas.{$index}",
-                    "Conflicto: Ya existe un evento en {$fecha['fecha']} de {$fecha['hora_inicio']} a {$fecha['hora_fin']}."
-                );
+                if ($solapado) {
+                    $validator->errors()->add(
+                        "fechas.{$i}.fecha",
+                        "Ya existe un evento en esta ubicación en la fecha {$fecha['fecha']} con horario superpuesto."
+                    );
+                }
             }
-        }
+        });
     }
 
     public function messages(): array
@@ -90,7 +82,7 @@ class StoreEventoRequest extends FormRequest
             'organizador_id.exists' => 'El organizador seleccionado no existe.',
             'institucion_id.required' => 'La institución es obligatoria.',
             'institucion_id.exists' => 'La institución seleccionada no existe.',
-            'ubicacion.max' => 'La ubicación no puede exceder 500 caracteres.',
+            'ubicacion_id.exists' => 'La ubicación seleccionada no existe.',
             'notas_cta.max' => 'Las notas CTA no pueden exceder 5000 caracteres.',
             'notas_servicios.max' => 'Las notas de servicios no pueden exceder 5000 caracteres.',
             'fechas.required' => 'Debe agregar al menos una fecha al evento.',

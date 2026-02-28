@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $eventos_tipo_id
  * @property int $organizador_id
  * @property string|null $ubicacion
+ * @property int|null $ubicacion_id
  * @property bool $activo
  * @property string|null $notas_cta
  * @property string|null $notas_servicios
@@ -24,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property-read EventoTipo $eventoTipo
  * @property-read Organizador $organizador
  * @property-read Institucion $institucion
+ * @property-read Ubicacion|null $ubicacion_rel
  * @property-read User $usuario
  * @property-read Collection<int, EventoFecha> $fechas
  */
@@ -36,6 +38,7 @@ class Evento extends Model
         'eventos_tipo_id',
         'organizador_id',
         'ubicacion',
+        'ubicacion_id',
         'activo',
         'notas_cta',
         'notas_servicios',
@@ -63,6 +66,11 @@ class Evento extends Model
     public function institucion(): BelongsTo
     {
         return $this->belongsTo(Institucion::class);
+    }
+
+    public function ubicacionRel(): BelongsTo
+    {
+        return $this->belongsTo(Ubicacion::class, 'ubicacion_id');
     }
 
     public function usuario(): BelongsTo

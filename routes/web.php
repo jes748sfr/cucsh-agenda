@@ -6,6 +6,7 @@ use App\Http\Controllers\EventoTipoController;
 use App\Http\Controllers\InstitucionController;
 use App\Http\Controllers\OrganizadorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,8 @@ Route::middleware('auth')->group(function () {
             ->parameters(['instituciones' => 'institucion'])->only(['index', 'show']);
         Route::resource('administraciones', AdministracionController::class)
             ->parameters(['administraciones' => 'administracion'])->only(['index', 'show']);
+        Route::resource('ubicaciones', UbicacionController::class)
+            ->parameters(['ubicaciones' => 'ubicacion'])->only(['index', 'show']);
     });
 
     // Catalogos - escritura (role:administrador)
@@ -43,6 +46,8 @@ Route::middleware('auth')->group(function () {
             ->parameters(['instituciones' => 'institucion'])->except(['index', 'show']);
         Route::resource('administraciones', AdministracionController::class)
             ->parameters(['administraciones' => 'administracion'])->except(['index', 'show']);
+        Route::resource('ubicaciones', UbicacionController::class)
+            ->parameters(['ubicaciones' => 'ubicacion'])->except(['index', 'show']);
     });
 
     // Organizadores - lectura (organizadores.ver)

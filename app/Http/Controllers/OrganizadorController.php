@@ -42,7 +42,17 @@ class OrganizadorController extends Controller
     {
         $this->authorize('create', Organizador::class);
 
-        Organizador::create($request->validated());
+        $organizador = Organizador::create($request->validated());
+
+        if ($request->wantsJson()) {
+            $organizador->load('administracion');
+
+            return response()->json([
+                'id' => $organizador->id,
+                'nombre' => $organizador->nombre,
+                'administracion' => $organizador->administracion->nombre,
+            ], 201);
+        }
 
         return redirect()->route('organizadores.index')
             ->with('success', __('El organizador se creo correctamente.'));

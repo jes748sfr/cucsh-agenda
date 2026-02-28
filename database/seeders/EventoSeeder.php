@@ -13,8 +13,8 @@ class EventoSeeder extends Seeder
             [
                 'nombre' => 'Conferencia de Inteligencia Artificial',
                 'eventos_tipo_id' => 1,  // Conferencia
-                'organizador_id' => 1,   // Coord. Investigación
-                'ubicacion' => 'Auditorio Carlos Ramírez Ladewig',
+                'organizador_id' => 1,   // Mtra. Patricia Rosas Chávez
+                'ubicacion_id' => 1,     // Auditorio Carlos Ramírez Ladewig
                 'activo' => true,
                 'notas_cta' => 'Requiere proyector y sistema de audio.',
                 'notas_servicios' => null,
@@ -24,8 +24,8 @@ class EventoSeeder extends Seeder
             [
                 'nombre' => 'Taller de Escritura Académica',
                 'eventos_tipo_id' => 2,  // Taller
-                'organizador_id' => 2,   // Coord. Académica
-                'ubicacion' => 'Aula 301, Edificio C',
+                'organizador_id' => 2,   // Dr. Carlos Mendoza López
+                'ubicacion_id' => 5,     // Aula 1 Edificio A
                 'activo' => true,
                 'notas_cta' => null,
                 'notas_servicios' => 'Coffee break para 30 personas.',
@@ -35,8 +35,8 @@ class EventoSeeder extends Seeder
             [
                 'nombre' => 'Seminario de Investigación Social',
                 'eventos_tipo_id' => 3,  // Seminario
-                'organizador_id' => 1,   // Coord. Investigación
-                'ubicacion' => 'Sala de Juntas, Edificio A',
+                'organizador_id' => 1,   // Mtra. Patricia Rosas Chávez
+                'ubicacion_id' => 8,     // Sala de Juntas Rectoría
                 'activo' => true,
                 'notas_cta' => 'Sesión con cupo limitado a 20 asistentes.',
                 'notas_servicios' => null,
@@ -46,8 +46,8 @@ class EventoSeeder extends Seeder
             [
                 'nombre' => 'Ceremonia de Graduación Marzo 2026',
                 'eventos_tipo_id' => 10, // Ceremonia
-                'organizador_id' => 3,   // Sec. Administrativa
-                'ubicacion' => 'Auditorio Carlos Ramírez Ladewig',
+                'organizador_id' => 3,   // Lic. María Elena Gutiérrez
+                'ubicacion_id' => 1,     // Auditorio Carlos Ramírez Ladewig
                 'activo' => true,
                 'notas_cta' => 'Coordinación con Rectoría para protocolo.',
                 'notas_servicios' => 'Montaje de escenario y sistema de sonido.',

@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             EventoTipoSeeder::class,
             InstitucionSeeder::class,
             AdministracionSeeder::class,
+            UbicacionSeeder::class,
         ]);
 
         // Roles, permisos y usuario administrador

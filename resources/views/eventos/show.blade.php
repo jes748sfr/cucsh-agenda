@@ -84,9 +84,12 @@
 
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                     <dt class="text-sm font-medium text-gray-500">Ubicación</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                        @if ($evento->ubicacion)
-                            {{ $evento->ubicacion }}
+                    <dd class="mt-1 text-sm sm:col-span-2 sm:mt-0">
+                        @if ($evento->ubicacionRel)
+                            <a href="{{ url('ubicaciones/' . $evento->ubicacionRel->id) }}"
+                               class="text-primary hover:underline">
+                                {{ $evento->ubicacionRel->nombre }}
+                            </a>
                         @else
                             <span class="text-gray-400">—</span>
                         @endif

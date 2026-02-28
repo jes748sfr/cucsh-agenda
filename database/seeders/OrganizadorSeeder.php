@@ -11,32 +11,39 @@ class OrganizadorSeeder extends Seeder
     {
         $organizadores = [
             [
-                'nombre' => 'Coordinación de Investigación',
+                'nombre' => 'Mtra. Patricia Rosas Chávez',
                 'tel' => '3336175432',
-                'email' => 'investigacion@cucsh.udg.mx',
+                'email' => 'patricia.rosas@cucsh.udg.mx',
                 'administracion_id' => 1, // Global
                 'activo' => true,
             ],
             [
-                'nombre' => 'Coordinación Académica',
+                'nombre' => 'Dr. Carlos Mendoza López',
                 'tel' => '3336175433',
-                'email' => 'academica@cucsh.udg.mx',
+                'email' => 'carlos.mendoza@cucsh.udg.mx',
                 'administracion_id' => 1, // Global
                 'activo' => true,
             ],
             [
-                'nombre' => 'Secretaría Administrativa',
+                'nombre' => 'Lic. María Elena Gutiérrez',
                 'tel' => '3336175434',
-                'email' => 'administrativa@cucsh.udg.mx',
+                'email' => 'maria.gutierrez@cucsh.udg.mx',
                 'administracion_id' => 2, // Administrativo
                 'activo' => true,
             ],
             [
-                'nombre' => 'Asociación de Estudiantes',
+                'nombre' => 'Mtro. Roberto Sánchez Vega',
                 'tel' => null,
-                'email' => 'estudiantes@cucsh.udg.mx',
+                'email' => 'roberto.sanchez@cucsh.udg.mx',
                 'administracion_id' => 3, // Externo
                 'activo' => true,
+            ],
+            [
+                'nombre' => 'Dra. Laura Fernández Ríos',
+                'tel' => '3336175440',
+                'email' => 'laura.fernandez@cucsh.udg.mx',
+                'administracion_id' => 2, // Administrativo
+                'activo' => false,
             ],
         ];
 

@@ -60,7 +60,7 @@
 
                 @can('catalogos.ver')
                     <x-sidebar-group label="Catálogos" icon="heroicon-o-rectangle-stack"
-                                     :active="request()->routeIs('eventos-tipos.*', 'instituciones.*', 'administraciones.*')">
+                                     :active="request()->routeIs('eventos-tipos.*', 'instituciones.*', 'administraciones.*', 'ubicaciones.*')">
                         <x-sidebar-sublink :href="route('eventos-tipos.index')" :active="request()->routeIs('eventos-tipos.*')">
                             Tipos de Evento
                         </x-sidebar-sublink>
@@ -69,6 +69,9 @@
                         </x-sidebar-sublink>
                         <x-sidebar-sublink :href="route('administraciones.index')" :active="request()->routeIs('administraciones.*')">
                             Administraciones
+                        </x-sidebar-sublink>
+                        <x-sidebar-sublink :href="route('ubicaciones.index')" :active="request()->routeIs('ubicaciones.*')">
+                            Ubicaciones
                         </x-sidebar-sublink>
                     </x-sidebar-group>
                 @endcan

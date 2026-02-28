@@ -90,12 +90,23 @@
                         </div>
 
                         {{-- Organizador --}}
-                        <div class="sm:col-span-4">
+                        <div
+                            class="sm:col-span-4"
+                            x-data="{ organizadorId: '{{ old('organizador_id') }}' }"
+                            @organizador-created.window="
+                                const org = $event.detail;
+                                const option = new Option(org.nombre + ' — ' + org.administracion, org.id, true, true);
+                                $refs.organizadorSelect.add(option);
+                                organizadorId = String(org.id);
+                            "
+                        >
                             <x-input-label for="organizador_id" value="Organizador *" />
-                            <div class="mt-2">
+                            <div class="mt-2 flex gap-2">
                                 <select
                                     id="organizador_id"
                                     name="organizador_id"
+                                    x-model="organizadorId"
+                                    x-ref="organizadorSelect"
                                     aria-describedby="organizador-error"
                                     class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                 >
@@ -110,26 +121,40 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                @can('create', App\Models\Organizador::class)
+                                    <button
+                                        type="button"
+                                        @click="$dispatch('open-modal', 'crear-organizador')"
+                                        class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white p-2 text-gray-500 shadow-sm hover:bg-gray-50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-udg-gold/30"
+                                        title="Crear nuevo organizador"
+                                    >
+                                        <x-heroicon-o-plus class="h-5 w-5" />
+                                    </button>
+                                @endcan
                             </div>
                             <x-input-error :messages="$errors->get('organizador_id')" id="organizador-error" />
                         </div>
 
                         {{-- Ubicación --}}
                         <div class="sm:col-span-4">
-                            <x-input-label for="ubicacion" value="Ubicación" />
+                            <x-input-label for="ubicacion_id" value="Ubicación" />
                             <div class="mt-2">
-                                <x-text-input
-                                    id="ubicacion"
-                                    name="ubicacion"
-                                    type="text"
-                                    class="block w-full"
-                                    :value="old('ubicacion')"
-                                    placeholder="Auditorio, salón, edificio..."
-                                    maxlength="255"
+                                <select
+                                    id="ubicacion_id"
+                                    name="ubicacion_id"
                                     aria-describedby="ubicacion-error"
-                                />
+                                    class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                >
+                                    <option value="">— Sin ubicación —</option>
+                                    @foreach ($ubicaciones as $ub)
+                                        <option value="{{ $ub->id }}"
+                                            {{ old('ubicacion_id') == $ub->id ? 'selected' : '' }}>
+                                            {{ $ub->nombre }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <x-input-error :messages="$errors->get('ubicacion')" id="ubicacion-error" />
+                            <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
                         </div>
 
                     </div>
@@ -367,5 +392,9 @@
 
         </form>
     </div>
+
+    @can('create', App\Models\Organizador::class)
+        <x-organizador-create-modal :administraciones="$administraciones" />
+    @endcan
 
 </x-app-layout>
