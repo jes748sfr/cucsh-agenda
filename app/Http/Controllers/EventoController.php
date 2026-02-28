@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEventoRequest;
 use App\Http\Requests\UpdateEventoRequest;
+use App\Mail\NotaCtaNotificacion;
 use App\Models\Administracion;
 use App\Models\Evento;
 use App\Models\EventoTipo;
@@ -11,6 +12,8 @@ use App\Models\Institucion;
 use App\Models\Organizador;
 use App\Models\Ubicacion;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class EventoController extends Controller
 {
@@ -54,14 +57,22 @@ class EventoController extends Controller
 
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated, $request) {
+        /** @var Evento $evento */
+        $evento = DB::transaction(function () use ($validated, $request) {
             $evento = Evento::create([
                 ...\Arr::except($validated, ['fechas']),
                 'usuario_id' => $request->user()->id,
             ]);
 
             $evento->fechas()->createMany($validated['fechas']);
+
+            return $evento;
         });
+
+        // Notificar al CTA si el evento incluye notas_cta
+        if (filled($evento->notas_cta)) {
+            $this->enviarNotificacionCta($evento, esActualizacion: false);
+        }
 
         $vista = $request->input('vista');
         $redirectUrl = $request->input('from') === 'dashboard'
@@ -112,12 +123,20 @@ class EventoController extends Controller
 
         $validated = $request->validated();
 
+        // Capturar valor original antes de la transaccion
+        $notasCtaOriginal = $evento->notas_cta;
+
         DB::transaction(function () use ($validated, $evento) {
             $evento->update(\Arr::except($validated, ['fechas']));
 
             $evento->fechas()->delete();
             $evento->fechas()->createMany($validated['fechas']);
         });
+
+        // Notificar al CTA si notas_cta cambio y tiene contenido
+        if (filled($evento->notas_cta) && $evento->notas_cta !== $notasCtaOriginal) {
+            $this->enviarNotificacionCta($evento, esActualizacion: filled($notasCtaOriginal));
+        }
 
         $redirectUrl = route('eventos.show', $evento);
 
@@ -140,6 +159,35 @@ class EventoController extends Controller
 
         return redirect()->route('eventos.index')
             ->with('success', __('El evento se eliminó correctamente.'));
+    }
+
+    /**
+     * Enviar notificacion al CTA con el resumen del evento.
+     * Si CTA_EMAIL no esta configurado, se omite con un warning en log.
+     */
+    private function enviarNotificacionCta(Evento $evento, bool $esActualizacion): void
+    {
+        $ctaEmail = config('cucsh.cta_email');
+
+        if (blank($ctaEmail)) {
+            Log::warning('No se envio notificacion CTA: CTA_EMAIL no configurado.', [
+                'evento_id' => $evento->id,
+            ]);
+
+            return;
+        }
+
+        // Eager load relaciones necesarias para el template
+        $evento->load(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel', 'fechas']);
+
+        try {
+            Mail::send(new NotaCtaNotificacion($evento, $esActualizacion));
+        } catch (\Throwable $e) {
+            Log::error('Error al enviar notificacion CTA.', [
+                'evento_id' => $evento->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

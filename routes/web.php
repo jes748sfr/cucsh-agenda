@@ -26,6 +26,20 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Catalogos - escritura (role:administrador)
+    // Orden importante: rutas de escritura ANTES de lectura para que /create
+    // no sea capturada por /{modelo} (show) como parámetro
+    Route::middleware('role:administrador')->group(function () {
+        Route::resource('eventos-tipos', EventoTipoController::class)
+            ->parameters(['eventos-tipos' => 'eventoTipo'])->except(['index', 'show']);
+        Route::resource('instituciones', InstitucionController::class)
+            ->parameters(['instituciones' => 'institucion'])->except(['index', 'show']);
+        Route::resource('administraciones', AdministracionController::class)
+            ->parameters(['administraciones' => 'administracion'])->except(['index', 'show']);
+        Route::resource('ubicaciones', UbicacionController::class)
+            ->parameters(['ubicaciones' => 'ubicacion'])->except(['index', 'show']);
+    });
+
     // Catalogos - lectura (catalogos.ver)
     Route::middleware('permission:catalogos.ver')->group(function () {
         Route::resource('eventos-tipos', EventoTipoController::class)
@@ -36,18 +50,6 @@ Route::middleware('auth')->group(function () {
             ->parameters(['administraciones' => 'administracion'])->only(['index', 'show']);
         Route::resource('ubicaciones', UbicacionController::class)
             ->parameters(['ubicaciones' => 'ubicacion'])->only(['index', 'show']);
-    });
-
-    // Catalogos - escritura (role:administrador)
-    Route::middleware('role:administrador')->group(function () {
-        Route::resource('eventos-tipos', EventoTipoController::class)
-            ->parameters(['eventos-tipos' => 'eventoTipo'])->except(['index', 'show']);
-        Route::resource('instituciones', InstitucionController::class)
-            ->parameters(['instituciones' => 'institucion'])->except(['index', 'show']);
-        Route::resource('administraciones', AdministracionController::class)
-            ->parameters(['administraciones' => 'administracion'])->except(['index', 'show']);
-        Route::resource('ubicaciones', UbicacionController::class)
-            ->parameters(['ubicaciones' => 'ubicacion'])->except(['index', 'show']);
     });
 
     // Organizadores - lectura (organizadores.ver)
