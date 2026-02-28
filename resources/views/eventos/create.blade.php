@@ -42,7 +42,7 @@
                     <div class="mt-8 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6">
 
                         {{-- Nombre --}}
-                        <div class="sm:col-span-4">
+                        <div class="col-span-full">
                             <x-input-label for="nombre" value="Nombre *" />
                             <div class="mt-2">
                                 <x-text-input
@@ -127,44 +127,116 @@
 
                         {{-- Organizador --}}
                         <div
-                            class="sm:col-span-4"
-                            x-data="{ organizadorId: '{{ old('organizador_id') }}' }"
+                            class="col-span-full"
+                            x-data="{
+                                open: false,
+                                selectedId: '{{ old('organizador_id') }}',
+                                items: {{ Js::from($organizadores->map(fn($o) => [
+                                    'id' => $o->id,
+                                    'nombre' => $o->nombre,
+                                    'administracion' => $o->administracion?->nombre ?? '',
+                                ])) }},
+                                get selected() {
+                                    if (!this.selectedId) return null;
+                                    return this.items.find(i => String(i.id) === String(this.selectedId)) || null;
+                                },
+                                select(item) {
+                                    this.selectedId = String(item.id);
+                                    this.open = false;
+                                },
+                                clear() {
+                                    this.selectedId = '';
+                                    this.open = false;
+                                }
+                            }"
                             @organizador-created.window="
                                 const org = $event.detail;
-                                const option = new Option(org.nombre + ' — ' + org.administracion, org.id, true, true);
-                                $refs.organizadorSelect.add(option);
-                                organizadorId = String(org.id);
+                                items.push({ id: org.id, nombre: org.nombre, administracion: org.administracion || '' });
+                                selectedId = String(org.id);
                             "
                         >
                             <x-input-label for="organizador_id" value="Organizador *" />
+                            <input type="hidden" name="organizador_id" :value="selectedId">
                             <div class="mt-2 flex gap-2">
-                                <select
-                                    id="organizador_id"
-                                    name="organizador_id"
-                                    x-model="organizadorId"
-                                    x-ref="organizadorSelect"
-                                    aria-describedby="organizador-error"
-                                    class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                >
-                                    <option value="">— Seleccionar organizador —</option>
-                                    @foreach ($organizadores as $org)
-                                        <option value="{{ $org->id }}"
-                                            {{ old('organizador_id') == $org->id ? 'selected' : '' }}>
-                                            {{ $org->nombre }}
-                                            @if ($org->administracion)
-                                                — {{ $org->administracion->nombre }}
-                                            @endif
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div class="relative w-full">
+                                    {{-- Trigger --}}
+                                    <button
+                                        type="button"
+                                        @click="open = !open"
+                                        @keydown.escape.window="open = false"
+                                        aria-haspopup="listbox"
+                                        :aria-expanded="open"
+                                        aria-describedby="organizador-error"
+                                        class="relative block w-full rounded-md border border-gray-300 bg-white py-2 pl-3 pr-10 text-left shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                    >
+                                        <template x-if="selected">
+                                            <span class="block">
+                                                <span class="block font-medium text-gray-900 truncate" x-text="selected.nombre"></span>
+                                                <span class="block text-xs text-gray-500 truncate" x-text="selected.administracion"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="!selected">
+                                            <span class="block text-gray-400">Seleccionar organizador...</span>
+                                        </template>
+                                        {{-- Chevron --}}
+                                        <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                            <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    </button>
+
+                                    {{-- Lista desplegable --}}
+                                    <div
+                                        x-show="open"
+                                        x-cloak
+                                        @click.outside="open = false"
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="opacity-0 -translate-y-1"
+                                        x-transition:enter-end="opacity-100 translate-y-0"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="opacity-100 translate-y-0"
+                                        x-transition:leave-end="opacity-0 -translate-y-1"
+                                        class="absolute z-20 mt-1 w-full rounded-md bg-white shadow-lg ring-1 ring-black/5"
+                                    >
+                                        <ul
+                                            role="listbox"
+                                            class="max-h-60 overflow-y-auto rounded-md py-1 text-sm focus:outline-none"
+                                        >
+                                            {{-- Opcion para limpiar seleccion --}}
+                                            <li
+                                                x-show="selectedId"
+                                                @click="clear()"
+                                                class="cursor-pointer select-none px-3 py-2 text-gray-400 hover:bg-gray-50"
+                                            >
+                                                Limpiar seleccion
+                                            </li>
+                                            <template x-for="item in items" :key="item.id">
+                                                <li
+                                                    @click="select(item)"
+                                                    :class="{
+                                                        'bg-primary/5': String(selectedId) === String(item.id)
+                                                    }"
+                                                    class="cursor-pointer select-none px-3 py-2 hover:bg-gray-50"
+                                                    role="option"
+                                                    :aria-selected="String(selectedId) === String(item.id)"
+                                                >
+                                                    <span class="block font-medium text-gray-900" x-text="item.nombre"></span>
+                                                    <span class="block text-xs text-gray-500" x-text="item.administracion"></span>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </div>
                                 @can('create', App\Models\Organizador::class)
                                     <button
                                         type="button"
                                         @click="$dispatch('open-modal', 'crear-organizador')"
-                                        class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white p-2 text-gray-500 shadow-sm hover:bg-gray-50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-udg-gold/30"
+                                        class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-udg-gold/30 whitespace-nowrap"
                                         title="Crear nuevo organizador"
                                     >
-                                        <x-heroicon-o-plus class="h-5 w-5" />
+                                        <x-heroicon-o-plus class="h-4 w-4" />
+                                        <span class="hidden sm:inline">Nuevo</span>
                                     </button>
                                 @endcan
                             </div>
@@ -179,7 +251,7 @@
                         </div>
 
                         {{-- Ubicación --}}
-                        <div class="sm:col-span-4">
+                        <div class="col-span-full">
                             <x-input-label for="ubicacion_id" value="Ubicación" />
                             <div class="mt-2">
                                 <select
@@ -358,15 +430,20 @@
                                     <label :for="'hora_inicio_' + i" class="block text-sm font-medium text-gray-700 mb-1">
                                         Inicio <span x-show="i === 0">*</span>
                                     </label>
-                                    <input
-                                        type="time"
+                                    <select
                                         :id="'hora_inicio_' + i"
                                         :name="'fechas[' + i + '][hora_inicio]'"
                                         x-model="item.hora_inicio"
-                                        min="07:00"
-                                        max="22:00"
                                         class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                     >
+                                        <option value="">--:--</option>
+                                        @for ($h = 7; $h <= 22; $h++)
+                                            <option value="{{ sprintf('%02d:00', $h) }}">{{ sprintf('%02d:00', $h) }}</option>
+                                            @if ($h < 22)
+                                                <option value="{{ sprintf('%02d:30', $h) }}">{{ sprintf('%02d:30', $h) }}</option>
+                                            @endif
+                                        @endfor
+                                    </select>
                                 </div>
 
                                 {{-- Hora fin --}}
@@ -374,15 +451,20 @@
                                     <label :for="'hora_fin_' + i" class="block text-sm font-medium text-gray-700 mb-1">
                                         Fin <span x-show="i === 0">*</span>
                                     </label>
-                                    <input
-                                        type="time"
+                                    <select
                                         :id="'hora_fin_' + i"
                                         :name="'fechas[' + i + '][hora_fin]'"
                                         x-model="item.hora_fin"
-                                        min="07:00"
-                                        max="22:00"
                                         class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                     >
+                                        <option value="">--:--</option>
+                                        @for ($h = 7; $h <= 22; $h++)
+                                            <option value="{{ sprintf('%02d:00', $h) }}">{{ sprintf('%02d:00', $h) }}</option>
+                                            @if ($h < 22)
+                                                <option value="{{ sprintf('%02d:30', $h) }}">{{ sprintf('%02d:30', $h) }}</option>
+                                            @endif
+                                        @endfor
+                                    </select>
                                 </div>
 
                                 {{-- Botón eliminar fila --}}

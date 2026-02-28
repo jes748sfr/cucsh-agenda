@@ -80,7 +80,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $admin = User::create([
             'name' => 'Administrador',
             'email' => 'admin@cucsh.udg.mx',
-            'password' => Hash::make('C4mb14rEnPr0ducc10n!'),
+            'password' => Hash::make('"C4mb14rEnPr0ducc10n!"'),
         ]);
 
         $admin->assignRole('administrador');
