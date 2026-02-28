@@ -31,12 +31,18 @@ class EventoController extends Controller
 
     /**
      * Formulario de creación de evento.
+     * Acepta query params opcionales: ?fecha=YYYY-MM-DD&hora_inicio=HH:mm
      */
     public function create()
     {
         $this->authorize('create', Evento::class);
 
-        return view('eventos.create', $this->catalogos());
+        return view('eventos.create', [
+            ...$this->catalogos(),
+            'prefillFecha' => request()->query('fecha'),
+            'prefillHoraInicio' => request()->query('hora_inicio'),
+            'from' => request()->query('from'),
+        ]);
     }
 
     /**
@@ -57,7 +63,16 @@ class EventoController extends Controller
             $evento->fechas()->createMany($validated['fechas']);
         });
 
-        return redirect()->route('eventos.index')
+        $vista = $request->input('vista');
+        $redirectUrl = $request->input('from') === 'dashboard'
+            ? route('dashboard') . ($vista ? '?vista=' . urlencode($vista) : '')
+            : route('eventos.index');
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => $redirectUrl]);
+        }
+
+        return redirect($redirectUrl)
             ->with('success', __('El evento se creó correctamente.'));
     }
 
@@ -104,7 +119,13 @@ class EventoController extends Controller
             $evento->fechas()->createMany($validated['fechas']);
         });
 
-        return redirect()->route('eventos.show', $evento)
+        $redirectUrl = route('eventos.show', $evento);
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => $redirectUrl]);
+        }
+
+        return redirect($redirectUrl)
             ->with('success', __('El evento se actualizó correctamente.'));
     }
 

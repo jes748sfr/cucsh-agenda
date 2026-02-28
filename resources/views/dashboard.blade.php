@@ -132,8 +132,8 @@
             {{-- Nivel 3: Badge de fecha + controles de navegación + dropdown vista + nuevo evento --}}
             <div class="flex items-center justify-between gap-3 flex-shrink-0 mb-2"
                  x-data="{
-                     mesCorto: '', diaNum: '', titulo: '', diaSemana: '',
-                     vistaActual: 'dayGridMonth',
+                     mesCorto: '', diaNum: '', titulo: '', diaSemana: '', fechaISO: '',
+                     vistaActual: new URLSearchParams(window.location.search).get('vista') || 'dayGridMonth',
                      vistaOpen: false,
                      vistas: [
                          { key: 'dayGridMonth', label: 'Mes' },
@@ -157,6 +157,7 @@
                      titulo = $event.detail.titulo;
                      diaSemana = $event.detail.diaSemana;
                      if ($event.detail.viewType) vistaActual = $event.detail.viewType;
+                     if ($event.detail.fechaISO) fechaISO = $event.detail.fechaISO;
                  "
             >
                 {{-- Izquierda: Badge + texto --}}
@@ -230,9 +231,11 @@
                         </div>
                     </div>
 
-                    {{-- Boton nuevo evento --}}
+                    {{-- Boton nuevo evento (pre-llena fecha en vista diaria, preserva vista) --}}
                     @can('eventos.crear')
-                        <a href="{{ route('eventos.create') }}">
+                        <a :href="vistaActual === 'timeGridDay' && fechaISO
+                            ? '{{ route('eventos.create') }}?fecha=' + fechaISO + '&hora_inicio=07:00&from=dashboard&vista=' + vistaActual
+                            : '{{ route('eventos.create') }}?from=dashboard&vista=' + vistaActual">
                             <x-primary-button class="cal-add-event-btn">
                                 <svg class="w-4 h-4 mr-1 -ml-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                 Nuevo evento

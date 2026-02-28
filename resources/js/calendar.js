@@ -131,13 +131,101 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    /**
+     * Posiciona el tooltip junto a una celda de timeGrid (intersección día+hora).
+     * En timeGridWeek usa las coordenadas del mouse para encontrar la columna
+     * del día y posiciona el tooltip a la derecha de esa celda.
+     * En timeGridDay usa el posicionamiento centrado estándar.
+     * @param {HTMLElement} slotLane - El elemento .fc-timegrid-slot-lane
+     * @param {MouseEvent} mouseEvent - Evento del mouse para determinar la columna
+     */
+    function positionSlotTooltip(slotLane, mouseEvent) {
+        var viewType = calendar.view.type;
+
+        // En vista diaria: usar posicionamiento centrado estándar
+        if (viewType === 'timeGridDay') {
+            positionTooltip(slotLane);
+            return;
+        }
+
+        // Vista semanal: encontrar la columna del día bajo el cursor
+        var colEls = calendarEl.querySelectorAll('.fc-timegrid-col:not(.fc-timegrid-axis)');
+        var targetCol = null;
+
+        for (var i = 0; i < colEls.length; i++) {
+            var colRect = colEls[i].getBoundingClientRect();
+            if (mouseEvent.clientX >= colRect.left && mouseEvent.clientX < colRect.right) {
+                targetCol = colEls[i];
+                break;
+            }
+        }
+
+        // Fallback: si no se encontró columna, usar posicionamiento estándar
+        if (!targetCol) {
+            positionTooltip(slotLane);
+            return;
+        }
+
+        var colRect = targetCol.getBoundingClientRect();
+        var slotRect = slotLane.getBoundingClientRect();
+        var gap = 8;
+
+        // Posicionar invisible para medir dimensiones
+        tooltip.style.left = '0px';
+        tooltip.style.top = '0px';
+        tooltip.classList.remove('fc-tooltip-visible');
+
+        var tw = tooltip.offsetWidth;
+        var th = tooltip.offsetHeight;
+        var vw = window.innerWidth;
+
+        // Posición vertical: centrar verticalmente respecto al slot
+        var top = slotRect.top + (slotRect.height / 2) - (th / 2);
+
+        // Posición horizontal: a la derecha de la celda
+        var left = colRect.right + gap;
+
+        // Si no cabe a la derecha, mostrar a la izquierda de la celda
+        if (left + tw > vw - 8) {
+            left = colRect.left - tw - gap;
+        }
+
+        // Si tampoco cabe a la izquierda, pegar al borde derecho del viewport
+        if (left < 8) {
+            left = 8;
+        }
+
+        // Ajuste vertical: no salirse por arriba ni por abajo
+        var vh = window.innerHeight;
+        if (top + th > vh - 8) {
+            top = vh - th - 8;
+        }
+        if (top < 8) {
+            top = 8;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+
+        // Activar transición de entrada
+        requestAnimationFrame(function () {
+            tooltip.classList.add('fc-tooltip-visible');
+        });
+    }
+
     // ── Calendario FullCalendar ──────────────────────────────────────
+
+    // Leer vista inicial desde parametro URL ?vista= (si existe y es valida)
+    const vistaValidas = ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listWeek'];
+    const urlParams = new URLSearchParams(window.location.search);
+    const vistaParam = urlParams.get('vista');
+    const initialViewFromUrl = vistaValidas.includes(vistaParam) ? vistaParam : 'dayGridMonth';
 
     const calendar = new Calendar(calendarEl, {
         plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
 
-        // Vistas
-        initialView: 'dayGridMonth',
+        // Vistas — restaurar la vista previa si viene en la URL
+        initialView: initialViewFromUrl,
         headerToolbar: false,
 
         // Localización
@@ -261,6 +349,11 @@ document.addEventListener('DOMContentLoaded', function () {
             var fmtMesLargo = new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' });
             var fmtDiaSemana = new Intl.DateTimeFormat('es-MX', { weekday: 'long' });
 
+            // Fecha ISO para el botón "Nuevo evento" (YYYY-MM-DD)
+            var yyyy = ref.getFullYear();
+            var mm = String(ref.getMonth() + 1).padStart(2, '0');
+            var dd = String(ref.getDate()).padStart(2, '0');
+
             window.dispatchEvent(new CustomEvent('calendar-date-change', {
                 detail: {
                     mesCorto: fmtMesCorto.format(ref).replace('.', '').toUpperCase(),
@@ -268,6 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     titulo: fmtMesLargo.format(ref),
                     diaSemana: fmtDiaSemana.format(ref),
                     viewType: info.view.type,
+                    fechaISO: yyyy + '-' + mm + '-' + dd,
                 }
             }));
         },
@@ -333,10 +427,17 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip.classList.remove('fc-tooltip-visible');
         },
 
-        // Click en celda de día → cambiar a vista diaria
+        // Click en celda/slot → crear evento o cambiar vista
         dateClick: function (info) {
             if (info.view.type === 'dayGridMonth') {
+                // En vista mensual: navegar a vista diaria
                 calendar.changeView('timeGridDay', info.dateStr);
+            } else if (info.view.type === 'timeGridWeek' || info.view.type === 'timeGridDay') {
+                // En vistas timeGrid: redirigir a crear evento con fecha y hora pre-llenadas
+                var fecha = info.dateStr.substring(0, 10); // YYYY-MM-DD
+                var hora = info.date.toTimeString().substring(0, 5); // HH:mm
+                var vista = calendar.view.type;
+                window.location.href = '/eventos/create?fecha=' + fecha + '&hora_inicio=' + hora + '&from=dashboard&vista=' + vista;
             }
         },
 
@@ -382,6 +483,107 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendar.render();
+
+    // ── Tooltip en slots de timeGrid — "Crear evento a las HH:mm" ─────
+    // Usa delegación de eventos en el contenedor del calendario para
+    // detectar hover sobre .fc-timegrid-slot-lane y mostrar el tooltip
+    // con la hora correspondiente extraída del slot-label adyacente.
+
+    // Icono "plus" SVG (Heroicons outline, se usa en el tooltip de slot)
+    var iconPlus = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px;flex-shrink:0;color:#202945"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>';
+
+    var slotTooltipTimeout = null;
+    var currentSlotLane = null;
+
+    // Usar mouseover/mouseout en lugar de mouseenter/mouseleave porque
+    // mouseenter NO burbujea y no funciona con delegacion de eventos.
+    // mouseover/mouseout SI burbujean y permiten detectar hover en hijos.
+    calendarEl.addEventListener('mouseover', function (e) {
+        var lane = e.target.closest('.fc-timegrid-slot-lane');
+        if (!lane) return;
+
+        // Evitar re-procesar si seguimos en el mismo slot
+        if (lane === currentSlotLane) return;
+        currentSlotLane = lane;
+
+        // Solo mostrar en vistas timeGrid
+        var viewType = calendar.view.type;
+        if (viewType !== 'timeGridWeek' && viewType !== 'timeGridDay') return;
+
+        // Obtener la hora desde el atributo data-time del <tr> padre
+        var row = lane.closest('tr');
+        if (!row) return;
+        var dataTime = row.getAttribute('data-time');
+        if (!dataTime) {
+            // Fallback: buscar data-time en el propio <td>
+            dataTime = lane.getAttribute('data-time');
+        }
+        if (!dataTime) return;
+
+        // Formatear hora legible: "10:00" → "10:00 AM"
+        var parts = dataTime.split(':');
+        var h = parseInt(parts[0], 10);
+        var m = parts[1];
+        var meridiem = h >= 12 ? 'PM' : 'AM';
+        var h12 = h === 0 ? 12 : (h > 12 ? h - 12 : h);
+        var horaTexto = h12 + ':' + m + ' ' + meridiem;
+
+        // Limpiar timeout previo de ocultamiento
+        if (slotTooltipTimeout) {
+            clearTimeout(slotTooltipTimeout);
+            slotTooltipTimeout = null;
+        }
+
+        tooltip.innerHTML = '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#202945;font-weight:500;white-space:nowrap">'
+            + iconPlus
+            + '<span>Crear evento a las ' + escapeHtml(horaTexto) + '</span>'
+            + '</div>';
+        positionSlotTooltip(lane, e);
+    });
+
+    // Reposicionar tooltip al moverse entre columnas dentro del mismo slot.
+    // Rastrear la columna actual para evitar reposicionar innecesariamente.
+    var currentSlotCol = null;
+
+    calendarEl.addEventListener('mousemove', function (e) {
+        if (!currentSlotLane) return;
+        var viewType = calendar.view.type;
+        if (viewType !== 'timeGridWeek') return;
+
+        // Solo reposicionar si el tooltip está visible
+        if (!tooltip.classList.contains('fc-tooltip-visible')) return;
+
+        // Encontrar la columna bajo el cursor
+        var colEls = calendarEl.querySelectorAll('.fc-timegrid-col:not(.fc-timegrid-axis)');
+        var hoveredCol = null;
+        for (var i = 0; i < colEls.length; i++) {
+            var colRect = colEls[i].getBoundingClientRect();
+            if (e.clientX >= colRect.left && e.clientX < colRect.right) {
+                hoveredCol = colEls[i];
+                break;
+            }
+        }
+
+        // Solo reposicionar si cambió la columna
+        if (hoveredCol && hoveredCol !== currentSlotCol) {
+            currentSlotCol = hoveredCol;
+            positionSlotTooltip(currentSlotLane, e);
+        }
+    });
+
+    calendarEl.addEventListener('mouseout', function (e) {
+        // Verificar que realmente salimos del slot lane actual
+        var related = e.relatedTarget;
+        if (related && currentSlotLane && currentSlotLane.contains(related)) return;
+
+        currentSlotLane = null;
+        currentSlotCol = null;
+
+        // Retrasar para evitar parpadeo entre slots adyacentes
+        slotTooltipTimeout = setTimeout(function () {
+            tooltip.classList.remove('fc-tooltip-visible');
+        }, 80);
+    });
 
     // Escuchar evento custom de refetch disparado por los tabs Alpine
     window.addEventListener('calendar-refetch', function () {

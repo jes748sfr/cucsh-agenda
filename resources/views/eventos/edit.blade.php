@@ -1,9 +1,15 @@
 <x-app-layout>
     @php
-        $back      = url()->previous();
-        $indexPath = rtrim(parse_url(route('eventos.index'), PHP_URL_PATH), '/');
-        $backPath  = rtrim(parse_url($back, PHP_URL_PATH), '/');
-        $backUrl   = ($backPath === $indexPath) ? $back : route('eventos.show', $evento);
+        $from = request()->query('from');
+        $vista = request()->query('vista');
+        if ($from === 'dashboard') {
+            $backUrl = route('dashboard') . ($vista ? '?vista=' . urlencode($vista) : '');
+        } else {
+            $back      = url()->previous();
+            $indexPath = rtrim(parse_url(route('eventos.index'), PHP_URL_PATH), '/');
+            $backPath  = rtrim(parse_url($back, PHP_URL_PATH), '/');
+            $backUrl   = ($backPath === $indexPath) ? $back : route('eventos.show', $evento);
+        }
     @endphp
 
     <x-slot name="header">
@@ -22,8 +28,8 @@
 
     <div class="max-w-2xl">
         <form
-            x-data="{ loading: false }"
-            @submit="loading = true"
+            x-data="eventoForm()"
+            @submit.prevent="submitForm($el)"
             action="{{ route('eventos.update', $evento) }}"
             method="POST"
             novalidate
@@ -57,6 +63,13 @@
                                 />
                             </div>
                             <x-input-error :messages="$errors->get('nombre')" id="nombre-error" />
+                            <template x-if="hasError('nombre')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('nombre')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                         {{-- Tipo de evento --}}
@@ -79,6 +92,13 @@
                                 </select>
                             </div>
                             <x-input-error :messages="$errors->get('eventos_tipo_id')" id="tipo-error" />
+                            <template x-if="hasError('eventos_tipo_id')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('eventos_tipo_id')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                         {{-- Institución --}}
@@ -101,6 +121,13 @@
                                 </select>
                             </div>
                             <x-input-error :messages="$errors->get('institucion_id')" id="institucion-error" />
+                            <template x-if="hasError('institucion_id')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('institucion_id')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                         {{-- Organizador --}}
@@ -147,6 +174,13 @@
                                 @endcan
                             </div>
                             <x-input-error :messages="$errors->get('organizador_id')" id="organizador-error" />
+                            <template x-if="hasError('organizador_id')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('organizador_id')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                         {{-- Ubicación --}}
@@ -169,6 +203,13 @@
                                 </select>
                             </div>
                             <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
+                            <template x-if="hasError('ubicacion_id')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('ubicacion_id')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                     </div>
@@ -245,6 +286,13 @@
                                 >{{ old('notas_cta', $evento->notas_cta) }}</textarea>
                             </div>
                             <x-input-error :messages="$errors->get('notas_cta')" id="notas-cta-error" />
+                            <template x-if="hasError('notas_cta')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('notas_cta')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                         {{-- Notas servicios --}}
@@ -261,6 +309,13 @@
                                 >{{ old('notas_servicios', $evento->notas_servicios) }}</textarea>
                             </div>
                             <x-input-error :messages="$errors->get('notas_servicios')" id="notas-servicios-error" />
+                            <template x-if="hasError('notas_servicios')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('notas_servicios')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
                         </div>
 
                     </div>
@@ -350,23 +405,29 @@
                             </div>
                         </template>
 
-                        {{-- Errores de fechas --}}
-                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
-                            <div class="rounded-md bg-red-50 border border-red-200 p-3">
-                                <div class="flex gap-2">
-                                    <x-heroicon-o-exclamation-triangle class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                                    <div class="text-sm text-red-700 space-y-1">
-                                        @foreach ($errors->get('fechas') as $msg)
-                                            <p>{{ $msg }}</p>
-                                        @endforeach
-                                        @foreach ($errors->get('fechas.*') as $msgs)
-                                            @foreach ($msgs as $msg)
-                                                <p>{{ $msg }}</p>
-                                            @endforeach
-                                        @endforeach
-                                    </div>
+                        {{-- Errores de fechas (server-side en primera carga + AJAX dinámicos) --}}
+                        <div x-show="fechaErrors.length > 0" x-cloak id="fecha-error-box"
+                             class="rounded-md bg-red-50 border border-red-200 p-3">
+                            <div class="flex gap-2">
+                                <svg class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                                <div class="text-sm text-red-700 space-y-1">
+                                    <template x-for="msg in fechaErrors" :key="msg">
+                                        <p x-text="msg"></p>
+                                    </template>
                                 </div>
                             </div>
+                        </div>
+                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
+                            {{-- Pre-llenar errores server-side en la variable Alpine --}}
+                            <script>
+                                document.addEventListener('alpine:init', () => {
+                                    window.__serverFechaErrors = @json(
+                                        collect($errors->get('fechas'))
+                                            ->merge(collect($errors->get('fechas.*'))->flatten())
+                                            ->values()
+                                    );
+                                });
+                            </script>
                         @endif
 
                         {{-- Botón agregar fecha --}}
@@ -415,5 +476,99 @@
     @can('create', App\Models\Organizador::class)
         <x-organizador-create-modal :administraciones="$administraciones" />
     @endcan
+
+    @push('head-scripts')
+        <script>
+            /**
+             * Formulario de evento con envío AJAX.
+             * Maneja errores 422 inline sin recargar la página.
+             */
+            window.eventoForm = function () {
+                return {
+                    loading: false,
+                    errors: {},
+                    fechaErrors: window.__serverFechaErrors || [],
+
+                    getErrors(field) {
+                        return this.errors[field] || [];
+                    },
+
+                    hasError(field) {
+                        return (this.errors[field] && this.errors[field].length > 0);
+                    },
+
+                    clearErrors() {
+                        this.errors = {};
+                        this.fechaErrors = [];
+                    },
+
+                    async submitForm(formEl) {
+                        if (this.loading) return;
+                        this.loading = true;
+                        this.clearErrors();
+
+                        const formData = new FormData(formEl);
+
+                        try {
+                            const response = await fetch(formEl.action, {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                },
+                                body: formData,
+                            });
+
+                            if (response.ok) {
+                                const data = await response.json();
+                                window.location.href = data.redirect;
+                                return;
+                            }
+
+                            if (response.status === 422) {
+                                const data = await response.json();
+                                this.errors = data.errors || {};
+                                this.extractFechaErrors();
+                                this.loading = false;
+
+                                this.$nextTick(() => {
+                                    this.scrollToFirstError(formEl);
+                                });
+                                return;
+                            }
+
+                            this.loading = false;
+                            window.location.reload();
+                        } catch (e) {
+                            this.loading = false;
+                            window.location.reload();
+                        }
+                    },
+
+                    extractFechaErrors() {
+                        const msgs = [];
+                        for (const [key, values] of Object.entries(this.errors)) {
+                            if (key === 'fechas' || key.startsWith('fechas.')) {
+                                values.forEach(function (m) { msgs.push(m); });
+                            }
+                        }
+                        this.fechaErrors = msgs;
+                    },
+
+                    scrollToFirstError(formEl) {
+                        const errorEl = formEl.querySelector('[data-ajax-error]:not([style*="display: none"])');
+                        if (errorEl) {
+                            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            return;
+                        }
+                        var fechaBox = document.getElementById('fecha-error-box');
+                        if (this.fechaErrors.length > 0 && fechaBox) {
+                            fechaBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                };
+            };
+        </script>
+    @endpush
 
 </x-app-layout>

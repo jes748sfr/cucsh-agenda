@@ -323,6 +323,20 @@
     height: 4rem !important;
 }
 
+/* ── Slots interactivos en timeGrid — feedback visual para crear evento ── */
+.fc .fc-timegrid-slot-lane {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    position: relative;
+}
+.fc .fc-timegrid-slot-lane:hover {
+    background-color: rgba(32, 41, 69, 0.06);
+}
+/* Slot hover del día actual — mantener tinte dorado */
+.fc .fc-day-today .fc-timegrid-slot-lane:hover {
+    background-color: rgba(232, 171, 22, 0.12);
+}
+
 /*
  * Ancho de la columna de horas en timeGrid (semanal/diaria).
  *
