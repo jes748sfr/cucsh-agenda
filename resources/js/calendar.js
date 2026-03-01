@@ -214,6 +214,84 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ── Agrupamiento de eventos superpuestos (timeGridDay) ──────────
+
+    /**
+     * Detecta grupos de eventos que se solapan temporalmente.
+     * Usa unión transitiva: si A↔B y B↔C, los tres forman un grupo.
+     * @param {Array} events - Eventos con start/end como strings ISO
+     * @returns {Array} Eventos procesados (pseudo-eventos grupo + individuales)
+     */
+    function groupOverlappingEvents(events) {
+        if (!events || events.length === 0) return events;
+
+        // Parsear y ordenar por hora de inicio
+        var parsed = events.map(function (ev) {
+            return {
+                original: ev,
+                start: new Date(ev.start).getTime(),
+                end: new Date(ev.end || ev.start).getTime(),
+            };
+        });
+        parsed.sort(function (a, b) { return a.start - b.start; });
+
+        // Agrupar por solapamiento transitivo
+        var groups = [];
+        var currentGroup = [parsed[0]];
+        var groupEnd = parsed[0].end;
+
+        for (var i = 1; i < parsed.length; i++) {
+            var item = parsed[i];
+            if (item.start < groupEnd) {
+                // Se solapa con el grupo actual
+                currentGroup.push(item);
+                if (item.end > groupEnd) groupEnd = item.end;
+            } else {
+                // No se solapa — guardar grupo anterior, empezar uno nuevo
+                groups.push(currentGroup);
+                currentGroup = [item];
+                groupEnd = item.end;
+            }
+        }
+        groups.push(currentGroup);
+
+        // Construir array final
+        var result = [];
+        for (var g = 0; g < groups.length; g++) {
+            var group = groups[g];
+            if (group.length === 1) {
+                // Evento individual — pasar tal cual
+                result.push(group[0].original);
+            } else {
+                // Grupo de 2+ eventos — crear pseudo-evento
+                var minStart = group[0].start;
+                var maxEnd = group[0].end;
+                for (var j = 1; j < group.length; j++) {
+                    if (group[j].start < minStart) minStart = group[j].start;
+                    if (group[j].end > maxEnd) maxEnd = group[j].end;
+                }
+
+                var groupedOriginals = group.map(function (item) {
+                    return item.original;
+                });
+
+                result.push({
+                    id: 'group-' + g,
+                    title: '+' + group.length + ' eventos agendados',
+                    start: new Date(minStart).toISOString(),
+                    end: new Date(maxEnd).toISOString(),
+                    extendedProps: {
+                        isGroup: true,
+                        groupCount: group.length,
+                        groupedEvents: groupedOriginals,
+                    }
+                });
+            }
+        }
+
+        return result;
+    }
+
     // ── Calendario FullCalendar ──────────────────────────────────────
 
     // Leer vista inicial desde parametro URL ?vista= (si existe y es valida)
@@ -254,6 +332,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var ev = arg.event;
             var props = ev.extendedProps;
+
+            // ── Pill de grupo (eventos superpuestos en timeGridDay) ──
+            if (props.isGroup) {
+                var count = props.groupCount || 0;
+
+                // Formatear rango horario del grupo
+                var groupStart = ev.start ? fmtHora.format(ev.start) : '';
+                var groupEnd = ev.end ? fmtHora.format(ev.end) : '';
+                var rangoHorario = groupEnd ? groupStart + ' \u2013 ' + groupEnd : groupStart;
+
+                var html = '<div class="fc-tg-pill">';
+
+                // Linea 1: hora con icono reloj (igual que pills normales)
+                html += '<div class="fc-tg-time">'
+                      + iconClock
+                      + '<span>' + escapeHtml(rangoHorario) + '</span>'
+                      + '</div>';
+
+                // Linea 2: titulo "+N eventos agendados" (mismo estilo que titulo normal)
+                html += '<div class="fc-tg-title">+' + count + ' eventos agendados</div>';
+
+                // Linea 3: subtexto explicativo
+                html += '<div class="fc-tg-org">Eventos superpuestos en este horario</div>';
+
+                html += '</div>';
+                return { html: html };
+            }
+
             var timeText = arg.timeText || '';
             var title = ev.title || '';
             var organizador = props.organizador || '';
@@ -304,7 +410,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             fetch('/api/events?' + params.toString())
                 .then(function (response) { return response.json(); })
-                .then(function (data) { successCallback(data); })
+                .then(function (data) {
+                    // Agrupar eventos superpuestos solo en vista diaria
+                    if (calendar.view.type === 'timeGridDay') {
+                        data = groupOverlappingEvents(data);
+                    }
+                    successCallback(data);
+                })
                 .catch(function () { failureCallback(); });
         },
 
@@ -372,6 +484,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // elegido por el usuario al registrar el evento
         eventDidMount: function (info) {
             var el = info.el;
+            var props = info.event.extendedProps;
+
+            // Pill de grupo y pills normales usan el mismo esquema de color.
+            // Si el evento no trae backgroundColor desde la API, se usa #7FBCD2.
             var pillColor = info.event.backgroundColor || '#7FBCD2';
 
             // Parsear hex a RGB para fondo con transparencia
@@ -449,9 +565,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var ev = info.event;
             var props = ev.extendedProps;
-            var eventoId = props.evento_id;
             var isTimeGridDay = info.view.type === 'timeGridDay';
             var isDesktop = window.innerWidth >= 1024;
+
+            // ── Click en pill de grupo — abrir panel en modo lista ──
+            if (props.isGroup && isTimeGridDay && isDesktop) {
+                var groupedEvents = props.groupedEvents || [];
+                // Formatear cada evento del grupo para el panel
+                var eventosFormateados = groupedEvents.map(function (raw) {
+                    var rawProps = raw.extendedProps || {};
+                    var start = raw.start ? new Date(raw.start) : null;
+                    var end = raw.end ? new Date(raw.end) : null;
+                    var horaStart = start ? fmtHora.format(start) : '';
+                    var horaEnd = end ? fmtHora.format(end) : '';
+                    var horario = horaEnd ? horaStart + ' \u2013 ' + horaEnd : horaStart;
+                    var fechaTexto = start ? fmtFecha.format(start) : '';
+
+                    return {
+                        evento_id: rawProps.evento_id,
+                        title: raw.title || '',
+                        tipo: rawProps.tipo || '',
+                        organizador: rawProps.organizador || '',
+                        administracion: rawProps.administracion || '',
+                        institucion: rawProps.institucion || '',
+                        ubicacion: rawProps.ubicacion || '',
+                        notas_cta: rawProps.notas_cta || '',
+                        fechaTexto: fechaTexto,
+                        horario: horario,
+                        backgroundColor: raw.backgroundColor || '#7FBCD2',
+                    };
+                });
+
+                window.dispatchEvent(new CustomEvent('show-event-list', {
+                    detail: {
+                        groupCount: props.groupCount,
+                        eventos: eventosFormateados,
+                    }
+                }));
+                return;
+            }
+
+            var eventoId = props.evento_id;
 
             if (isTimeGridDay && isDesktop) {
                 // Formatear fecha y horario para el panel
@@ -471,6 +625,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         tipo: props.tipo || '',
                         institucion: props.institucion || '',
                         organizador: props.organizador || '',
+                        administracion: props.administracion || '',
                         ubicacion: props.ubicacion || '',
                         notas_cta: props.notas_cta || '',
                         fechaTexto: fechaTexto,

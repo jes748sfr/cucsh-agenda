@@ -331,6 +331,10 @@
     font-size: 1rem;
 }
 
+/* ── Pill de grupo: ya no necesita estilos especiales ──
+   Usa exactamente los mismos estilos que .fc-tg-pill normal
+   (columna vertical, mismos tamaños, mismos colores via eventDidMount) */
+
 /* TimeGrid — altura generosa de slots y ancho de columna horaria */
 .fc .fc-timegrid-slot {
     height: 4rem !important;
