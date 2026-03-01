@@ -3,6 +3,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
+import esLocale from '@fullcalendar/core/locales/es';
 
 document.addEventListener('DOMContentLoaded', function () {
     const calendarEl = document.getElementById('calendar');
@@ -229,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
         headerToolbar: false,
 
         // Localización
-        locale: 'es',
+        locale: esLocale,
         firstDay: 1,
         noEventsText: 'No hay eventos para mostrar',
 

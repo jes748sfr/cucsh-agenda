@@ -171,6 +171,19 @@
     color: #202945;
 }
 
+/* ── Popover "+N mas" — pills con mas altura y separacion ── */
+.fc .fc-more-popover .fc-popover-body {
+    padding: 8px 10px;
+}
+.fc .fc-more-popover .fc-daygrid-event-harness {
+    margin-bottom: 4px;
+}
+.fc .fc-more-popover .fc-daygrid-event {
+    padding: 3px 0;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
 /* Ocultar encabezado de columna en vista diaria (redundante con badge de fecha) */
 .fc-timeGridDay-view .fc-col-header {
     display: none;
