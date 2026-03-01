@@ -116,7 +116,7 @@
                     class="mt-1 block w-full"
                     x-model="tel"
                     maxlength="20"
-                    placeholder="Opcional"
+                    placeholder="33 1234 5678"
                     aria-describedby="org-tel-error"
                 />
                 <template x-if="errors.tel">

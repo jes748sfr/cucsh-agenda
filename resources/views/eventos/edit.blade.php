@@ -353,7 +353,7 @@
                                     name="notas_cta"
                                     rows="4"
                                     aria-describedby="notas-cta-error"
-                                    placeholder="Información relevante para la convocatoria..."
+                                    placeholder="Servicios requeridos al CTA: equipo audiovisual, transmisión en vivo, grabación, videoconferencia, etc."
                                     class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                 >{{ old('notas_cta', $evento->notas_cta) }}</textarea>
                             </div>

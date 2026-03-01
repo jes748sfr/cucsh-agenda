@@ -109,7 +109,7 @@
                                     <option value="">— Seleccionar institución —</option>
                                     @foreach ($instituciones as $inst)
                                         <option value="{{ $inst->id }}"
-                                            {{ old('institucion_id') == $inst->id ? 'selected' : '' }}>
+                                            {{ old('institucion_id', $instituciones->count() === 1 ? $instituciones->first()->id : '') == $inst->id ? 'selected' : '' }}>
                                             {{ $inst->nombre }}
                                         </option>
                                     @endforeach
@@ -348,7 +348,7 @@
                                     name="notas_cta"
                                     rows="4"
                                     aria-describedby="notas-cta-error"
-                                    placeholder="Información relevante para la convocatoria..."
+                                    placeholder="Servicios requeridos al CTA: equipo audiovisual, transmisión en vivo, grabación, videoconferencia, etc."
                                     class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                 >{{ old('notas_cta') }}</textarea>
                             </div>
@@ -391,7 +391,7 @@
                 {{-- Sección 3: Fechas --}}
                 @php
                     $defaultFechas = [[
-                        'fecha' => $prefillFecha ?? '',
+                        'fecha' => $prefillFecha ?? now()->format('Y-m-d'),
                         'hora_inicio' => $prefillHoraInicio ?? '',
                         'hora_fin' => '',
                     ]];
