@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Formato de hora en pills: "10:00 AM"
         eventTimeFormat: {
-            hour: 'numeric',
+            hour: '2-digit',
             minute: '2-digit',
             meridiem: 'short',
         },
@@ -572,9 +572,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     calendarEl.addEventListener('mouseout', function (e) {
+        // Solo procesar si estamos rastreando un slot lane (tooltip de timeGrid).
+        // Sin esta guarda, el mouseout que burbujea desde pills de dayGridMonth
+        // oculta el tooltip de evento despues de ~80ms.
+        if (!currentSlotLane) return;
+
         // Verificar que realmente salimos del slot lane actual
         var related = e.relatedTarget;
-        if (related && currentSlotLane && currentSlotLane.contains(related)) return;
+        if (related && currentSlotLane.contains(related)) return;
 
         currentSlotLane = null;
         currentSlotCol = null;
