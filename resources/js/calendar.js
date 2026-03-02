@@ -14,6 +14,15 @@ document.addEventListener('DOMContentLoaded', function () {
     tooltip.id = 'fc-tooltip';
     document.body.appendChild(tooltip);
 
+    // ── Popover semanal (interactivo, con botón cerrar y link) ─────
+    const weekPopover = document.createElement('div');
+    weekPopover.id = 'fc-week-popover';
+    weekPopover.style.display = 'none';
+    document.body.appendChild(weekPopover);
+
+    // ID del evento actualmente mostrado en el popover (para toggle)
+    var weekPopoverEventId = null;
+
     // Iconos SVG inline (Heroicons outline 14x14)
     const iconCalendar = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z"/></svg>';
     const iconBuilding = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"/></svg>';
@@ -213,6 +222,202 @@ document.addEventListener('DOMContentLoaded', function () {
             tooltip.classList.add('fc-tooltip-visible');
         });
     }
+
+    // ── Popover semanal: mostrar, posicionar y cerrar ───────────────
+
+    /**
+     * Muestra el popover de detalle en la vista semanal (timeGridWeek).
+     * Se posiciona a la izquierda de la columna del día del evento,
+     * excepto para la primera columna (lunes) donde se posiciona a la derecha.
+     * @param {Object} ev - Objeto evento de FullCalendar
+     * @param {HTMLElement} eventEl - Elemento DOM del pill clickeado
+     */
+    function showWeekPopover(ev, eventEl) {
+        weekPopoverEventId = ev.id;
+        var props = ev.extendedProps;
+
+        // Formatear horario
+        var horaStart = ev.start ? fmtHora.format(ev.start) : '';
+        var horaEnd = ev.end ? fmtHora.format(ev.end) : '';
+        var horario = horaEnd ? horaStart + ' \u2013 ' + horaEnd : horaStart;
+        var fechaTexto = ev.start ? fmtFecha.format(ev.start) : '';
+
+        // Construir HTML del popover
+        var html = '';
+
+        // Cabecera: titulo + botón cerrar
+        html += '<div class="fc-wpop-header">';
+        html += '<h4 class="fc-wpop-title">' + escapeHtml(ev.title) + '</h4>';
+        html += '<button type="button" class="fc-wpop-close" aria-label="Cerrar">';
+        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
+        html += '</button>';
+        html += '</div>';
+
+        // Campos de detalle
+        html += '<div class="fc-wpop-body">';
+
+        if (props.tipo) {
+            html += '<div class="fc-wpop-field">';
+            html += '<span class="fc-wpop-label">Tipo de evento</span>';
+            html += '<span class="fc-wpop-value">' + escapeHtml(props.tipo) + '</span>';
+            html += '</div>';
+        }
+
+        html += '<div class="fc-wpop-field">';
+        html += '<span class="fc-wpop-label">Institucion</span>';
+        html += '<span class="fc-wpop-value">' + escapeHtml(props.institucion || 'Sin institucion') + '</span>';
+        html += '</div>';
+
+        html += '<div class="fc-wpop-field">';
+        html += '<span class="fc-wpop-label">Organizador</span>';
+        html += '<span class="fc-wpop-value">' + escapeHtml(props.organizador || 'Sin organizador') + '</span>';
+        if (props.administracion) {
+            html += '<span class="fc-wpop-sub">' + escapeHtml(props.administracion) + '</span>';
+        }
+        html += '</div>';
+
+        if (props.ubicacion) {
+            html += '<div class="fc-wpop-field">';
+            html += '<span class="fc-wpop-label">Ubicacion</span>';
+            html += '<span class="fc-wpop-value">' + escapeHtml(props.ubicacion) + '</span>';
+            html += '</div>';
+        }
+
+        html += '<div class="fc-wpop-field">';
+        html += '<span class="fc-wpop-label">Horario</span>';
+        html += '<span class="fc-wpop-value">' + escapeHtml(fechaTexto) + '</span>';
+        html += '<span class="fc-wpop-sub">' + escapeHtml(horario) + '</span>';
+        html += '</div>';
+
+        if (props.notas_cta) {
+            html += '<div class="fc-wpop-divider"></div>';
+            html += '<div class="fc-wpop-field">';
+            html += '<span class="fc-wpop-label">Notas CTA</span>';
+            html += '<span class="fc-wpop-value fc-wpop-notes">' + escapeHtml(props.notas_cta) + '</span>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+
+        // Footer: link a vista completa
+        var eventoId = props.evento_id;
+        html += '<div class="fc-wpop-footer">';
+        html += '<a href="/eventos/' + eventoId + '" class="fc-wpop-link">';
+        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
+        html += '<span>Ver evento completo</span>';
+        html += '</a>';
+        html += '</div>';
+
+        weekPopover.innerHTML = html;
+        weekPopover.style.display = 'block';
+
+        // Posicionar respecto a la columna del día
+        positionWeekPopover(eventEl);
+
+        // Bind cierre por botón X (cada vez que se abre)
+        var closeBtn = weekPopover.querySelector('.fc-wpop-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeWeekPopover);
+        }
+    }
+
+    /**
+     * Posiciona el popover semanal anclado a la izquierda de la columna del día.
+     * Para la primera columna (lunes), lo ancla a la derecha.
+     * @param {HTMLElement} eventEl - Elemento DOM del pill
+     */
+    function positionWeekPopover(eventEl) {
+        var gap = 8;
+
+        // Encontrar la columna del día que contiene el evento
+        var colEl = eventEl.closest('.fc-timegrid-col');
+        if (!colEl) {
+            // Fallback: posicionar junto al pill
+            colEl = eventEl;
+        }
+
+        // Detectar indice de columna para saber si es la primera (lunes)
+        var colEls = calendarEl.querySelectorAll('.fc-timegrid-col:not(.fc-timegrid-axis)');
+        var colIndex = -1;
+        for (var i = 0; i < colEls.length; i++) {
+            if (colEls[i] === colEl) {
+                colIndex = i;
+                break;
+            }
+        }
+
+        var colRect = colEl.getBoundingClientRect();
+        var eventRect = eventEl.getBoundingClientRect();
+
+        // Medir el popover
+        var pw = weekPopover.offsetWidth;
+        var ph = weekPopover.offsetHeight;
+        var vw = window.innerWidth;
+        var vh = window.innerHeight;
+
+        var left, top;
+
+        if (colIndex === 0) {
+            // Primera columna (lunes): anclar a la derecha de la columna
+            left = colRect.right + gap;
+        } else {
+            // Otras columnas: anclar a la izquierda de la columna
+            left = colRect.left - pw - gap;
+        }
+
+        // Vertical: alinear borde superior del popover con borde superior del pill
+        top = eventRect.top;
+
+        // Ajustes de viewport
+        if (left + pw > vw - 8) {
+            left = colRect.left - pw - gap; // Fallback izquierda
+        }
+        if (left < 8) {
+            left = colRect.right + gap; // Fallback derecha
+        }
+        if (top + ph > vh - 8) {
+            top = vh - ph - 8;
+        }
+        if (top < 8) {
+            top = 8;
+        }
+
+        weekPopover.style.left = left + 'px';
+        weekPopover.style.top = top + 'px';
+
+        // Activar transición de entrada
+        requestAnimationFrame(function () {
+            weekPopover.classList.add('fc-wpop-visible');
+        });
+    }
+
+    /**
+     * Cierra el popover semanal.
+     */
+    function closeWeekPopover() {
+        weekPopoverEventId = null;
+        weekPopover.classList.remove('fc-wpop-visible');
+        // Ocultar tras la transición
+        setTimeout(function () {
+            weekPopover.style.display = 'none';
+        }, 180);
+    }
+
+    // Cierre por click fuera del popover.
+    // Ignorar clicks en pills de FullCalendar — el eventClick se encarga del toggle.
+    document.addEventListener('mousedown', function (e) {
+        if (weekPopover.style.display === 'none') return;
+        if (weekPopover.contains(e.target)) return;
+        if (e.target.closest('.fc-event')) return;
+        closeWeekPopover();
+    });
+
+    // Cierre por tecla Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && weekPopover.style.display !== 'none') {
+            closeWeekPopover();
+        }
+    });
 
     // ── Agrupamiento de eventos superpuestos (timeGridDay) ──────────
 
@@ -417,12 +622,9 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch('/api/events?' + params.toString())
                 .then(function (response) { return response.json(); })
                 .then(function (data) {
-                    console.log('[DEBUG] Vista actual:', calendar.view.type);
-                    console.log('[DEBUG] Eventos recibidos:', data.length);
                     // Agrupar eventos superpuestos solo en vista diaria
                     if (calendar.view.type === 'timeGridDay') {
                         data = groupOverlappingEvents(data);
-                        console.log('[DEBUG] Eventos agrupados:', data.length);
                     }
                     successCallback(data);
                 })
@@ -486,6 +688,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     fechaISO: yyyy + '-' + mm + '-' + dd,
                 }
             }));
+
+            // Cerrar popover semanal al cambiar de vista o navegar
+            closeWeekPopover();
 
             // ── Refetch al cambiar a/desde timeGridDay ──────────────
             // La funcion events() agrupa solapamientos solo en timeGridDay.
@@ -599,8 +804,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
             var ev = info.event;
             var props = ev.extendedProps;
+            var isTimeGridWeek = info.view.type === 'timeGridWeek';
             var isTimeGridDay = info.view.type === 'timeGridDay';
             var isDesktop = window.innerWidth >= 1024;
+
+            // ── Vista semanal: popover de detalle (toggle) ──
+            if (isTimeGridWeek) {
+                // Si el popover ya está abierto para este mismo evento, cerrarlo
+                if (weekPopover.style.display !== 'none' && weekPopoverEventId === ev.id) {
+                    closeWeekPopover();
+                    return;
+                }
+                showWeekPopover(ev, info.el);
+                return;
+            }
 
             // ── Click en pill de grupo — abrir panel en modo lista ──
             if (props.isGroup && isTimeGridDay && isDesktop) {
