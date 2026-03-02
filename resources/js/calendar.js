@@ -294,6 +294,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ── Calendario FullCalendar ──────────────────────────────────────
 
+    // Flag para evitar loop infinito: refetchEvents() dispara datesSet,
+    // que a su vez llamaria refetchEvents() de nuevo. Con este flag,
+    // el segundo datesSet detecta que fue provocado por un refetch y no repite.
+    var isRefetching = false;
+    var previousViewType = null;
+
     // Leer vista inicial desde parametro URL ?vista= (si existe y es valida)
     const vistaValidas = ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listWeek'];
     const urlParams = new URLSearchParams(window.location.search);
@@ -411,9 +417,12 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch('/api/events?' + params.toString())
                 .then(function (response) { return response.json(); })
                 .then(function (data) {
+                    console.log('[DEBUG] Vista actual:', calendar.view.type);
+                    console.log('[DEBUG] Eventos recibidos:', data.length);
                     // Agrupar eventos superpuestos solo en vista diaria
                     if (calendar.view.type === 'timeGridDay') {
                         data = groupOverlappingEvents(data);
+                        console.log('[DEBUG] Eventos agrupados:', data.length);
                     }
                     successCallback(data);
                 })
@@ -477,6 +486,31 @@ document.addEventListener('DOMContentLoaded', function () {
                     fechaISO: yyyy + '-' + mm + '-' + dd,
                 }
             }));
+
+            // ── Refetch al cambiar a/desde timeGridDay ──────────────
+            // La funcion events() agrupa solapamientos solo en timeGridDay.
+            // FullCalendar cachea los eventos y no re-ejecuta el callback
+            // al cambiar de vista, asi que forzamos un refetch cuando la
+            // vista cambia a timeGridDay (para agrupar) o desde timeGridDay
+            // (para desagrupar).
+            var currentViewType = info.view.type;
+
+            if (isRefetching) {
+                // Este datesSet fue disparado por refetchEvents() — no repetir
+                isRefetching = false;
+                previousViewType = currentViewType;
+                return;
+            }
+
+            var needsRefetch = (currentViewType === 'timeGridDay' && previousViewType !== 'timeGridDay')
+                            || (currentViewType !== 'timeGridDay' && previousViewType === 'timeGridDay');
+
+            previousViewType = currentViewType;
+
+            if (needsRefetch) {
+                isRefetching = true;
+                calendar.refetchEvents();
+            }
         },
 
         // ── Renderizado de pills con color dinámico ────────────
@@ -637,6 +671,10 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         },
     });
+
+    // Inicializar previousViewType con la vista inicial para que el primer
+    // datesSet no dispare un refetch innecesario
+    previousViewType = initialViewFromUrl;
 
     calendar.render();
 

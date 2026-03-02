@@ -281,8 +281,7 @@
                     </div>
 
                     {{-- ══ Modo single: detalle de un evento ══ --}}
-                    <template x-if="panelMode === 'single'">
-                        <div class="flex-1 flex flex-col overflow-hidden">
+                    <div x-show="panelMode === 'single'" class="flex-1 flex flex-col overflow-hidden">
                             {{-- Contenido scrollable --}}
                             <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
@@ -349,12 +348,10 @@
                                     Ver evento completo
                                 </a>
                             </div>
-                        </div>
-                    </template>
+                    </div>
 
                     {{-- ══ Modo list: lista de eventos agrupados (acordeon) ══ --}}
-                    <template x-if="panelMode === 'list'">
-                        <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+                    <div x-show="panelMode === 'list'" class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
                             <template x-for="(ev, idx) in panelEventos" :key="idx">
                                 <div class="rounded-lg border border-gray-200 overflow-hidden transition-colors"
                                      :class="expandedIdx === idx ? 'border-gray-300 bg-gray-50/50' : 'hover:border-gray-300'"
@@ -464,8 +461,7 @@
                                     </div>
                                 </div>
                             </template>
-                        </div>
-                    </template>
+                    </div>
 
                 </div>
             </div>
