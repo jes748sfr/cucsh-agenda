@@ -14,6 +14,14 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Calendario público (sin autenticación)
+Route::get('/calendario', function () {
+    return view('calendario-publico', [
+        'instituciones' => \App\Models\Institucion::orderBy('nombre')->get(),
+        'administraciones' => \App\Models\Administracion::orderBy('nombre')->get(),
+    ]);
+})->name('calendario.publico');
+
 Route::get('/dashboard', function () {
     return view('dashboard', [
         'instituciones' => \App\Models\Institucion::orderBy('nombre')->get(),

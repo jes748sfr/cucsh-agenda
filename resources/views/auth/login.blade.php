@@ -44,4 +44,11 @@
             </x-primary-button>
         </div>
     </form>
+
+    <div class="mt-4 text-center">
+        <a href="{{ route('calendario.publico') }}"
+           class="text-sm text-gray-500 hover:text-gray-700 transition underline">
+            Ver calendario publico
+        </a>
+    </div>
 </x-guest-layout>

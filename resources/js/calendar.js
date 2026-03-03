@@ -299,14 +299,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         html += '</div>';
 
-        // Footer: link a vista completa
-        var eventoId = props.evento_id;
-        html += '<div class="fc-wpop-footer">';
-        html += '<a href="/eventos/' + eventoId + '" class="fc-wpop-link">';
-        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
-        html += '<span>Ver evento completo</span>';
-        html += '</a>';
-        html += '</div>';
+        // Footer: link a vista completa (solo en modo autenticado)
+        if (!window.__calendarPublicMode) {
+            var eventoId = props.evento_id;
+            html += '<div class="fc-wpop-footer">';
+            html += '<a href="/eventos/' + eventoId + '" class="fc-wpop-link">';
+            html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
+            html += '<span>Ver evento completo</span>';
+            html += '</a>';
+            html += '</div>';
+        }
 
         weekPopover.innerHTML = html;
         weekPopover.style.display = 'block';
@@ -790,10 +792,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 calendar.changeView('timeGridDay', info.dateStr);
             } else if (info.view.type === 'timeGridWeek' || info.view.type === 'timeGridDay') {
                 // En vistas timeGrid: redirigir a crear evento con fecha y hora pre-llenadas
-                var fecha = info.dateStr.substring(0, 10); // YYYY-MM-DD
-                var hora = info.date.toTimeString().substring(0, 5); // HH:mm
-                var vista = calendar.view.type;
-                window.location.href = '/eventos/create?fecha=' + fecha + '&hora_inicio=' + hora + '&from=dashboard&vista=' + vista;
+                if (!window.__calendarPublicMode) {
+                    var fecha = info.dateStr.substring(0, 10); // YYYY-MM-DD
+                    var hora = info.date.toTimeString().substring(0, 5); // HH:mm
+                    var vista = calendar.view.type;
+                    window.location.href = '/eventos/create?fecha=' + fecha + '&hora_inicio=' + hora + '&from=dashboard&vista=' + vista;
+                }
             }
         },
 
@@ -883,7 +887,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         horarioTexto: horarioTexto,
                     }
                 }));
-            } else {
+            } else if (!window.__calendarPublicMode) {
                 window.location.href = '/eventos/' + eventoId;
             }
         },
@@ -910,6 +914,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // mouseenter NO burbujea y no funciona con delegacion de eventos.
     // mouseover/mouseout SI burbujean y permiten detectar hover en hijos.
     calendarEl.addEventListener('mouseover', function (e) {
+        if (window.__calendarPublicMode) return;
+
         var lane = e.target.closest('.fc-timegrid-slot-lane');
         if (!lane) return;
 
