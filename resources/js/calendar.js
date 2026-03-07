@@ -546,7 +546,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var ev = arg.event;
             var props = ev.extendedProps;
 
-            // ── Pill de grupo (eventos superpuestos en timeGridDay) ──
+            // ── Pill de grupo (eventos superpuestos) ──
             if (props.isGroup) {
                 var count = props.groupCount || 0;
 
@@ -555,15 +555,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 var groupEnd = ev.end ? fmtHora.format(ev.end) : '';
                 var rangoHorario = groupEnd ? groupStart + ' \u2013 ' + groupEnd : groupStart;
 
+                if (viewType === 'timeGridWeek') {
+                    // ── Pill compacto para vista semanal (2 lineas max) ──
+                    var html = '<div class="fc-tg-pill fc-tg-pill--week-group">';
+
+                    // Linea 1: rango horario compacto
+                    html += '<div class="fc-tg-time">'
+                          + iconClock
+                          + '<span>' + escapeHtml(rangoHorario) + '</span>'
+                          + '</div>';
+
+                    // Linea 2: "+N eventos" (texto corto)
+                    html += '<div class="fc-tg-title">+' + count + ' eventos</div>';
+
+                    html += '</div>';
+                    return { html: html };
+                }
+
+                // ── Pill para vista diaria (3 lineas) ──
                 var html = '<div class="fc-tg-pill">';
 
-                // Linea 1: hora con icono reloj (igual que pills normales)
+                // Linea 1: hora con icono reloj
                 html += '<div class="fc-tg-time">'
                       + iconClock
                       + '<span>' + escapeHtml(rangoHorario) + '</span>'
                       + '</div>';
 
-                // Linea 2: titulo "+N eventos agendados" (mismo estilo que titulo normal)
+                // Linea 2: titulo "+N eventos agendados"
                 html += '<div class="fc-tg-title">+' + count + ' eventos agendados</div>';
 
                 // Linea 3: subtexto explicativo
@@ -624,8 +642,9 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch('/api/events?' + params.toString())
                 .then(function (response) { return response.json(); })
                 .then(function (data) {
-                    // Agrupar eventos superpuestos solo en vista diaria
-                    if (calendar.view.type === 'timeGridDay') {
+                    // Agrupar eventos superpuestos en vistas diaria y semanal
+                    var viewType = calendar.view.type;
+                    if (viewType === 'timeGridDay' || viewType === 'timeGridWeek') {
                         data = groupOverlappingEvents(data);
                     }
                     successCallback(data);
@@ -694,12 +713,12 @@ document.addEventListener('DOMContentLoaded', function () {
             // Cerrar popover semanal al cambiar de vista o navegar
             closeWeekPopover();
 
-            // ── Refetch al cambiar a/desde timeGridDay ──────────────
-            // La funcion events() agrupa solapamientos solo en timeGridDay.
-            // FullCalendar cachea los eventos y no re-ejecuta el callback
-            // al cambiar de vista, asi que forzamos un refetch cuando la
-            // vista cambia a timeGridDay (para agrupar) o desde timeGridDay
-            // (para desagrupar).
+            // ── Refetch al cambiar a/desde vistas con agrupamiento ────
+            // La funcion events() agrupa solapamientos en timeGridDay y
+            // timeGridWeek. FullCalendar cachea los eventos y no re-ejecuta
+            // el callback al cambiar de vista, asi que forzamos un refetch
+            // cuando se entra/sale de vistas agrupadas o se cambia entre ellas
+            // (el pill de grupo difiere entre diaria y semanal).
             var currentViewType = info.view.type;
 
             if (isRefetching) {
@@ -709,8 +728,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            var needsRefetch = (currentViewType === 'timeGridDay' && previousViewType !== 'timeGridDay')
-                            || (currentViewType !== 'timeGridDay' && previousViewType === 'timeGridDay');
+            // Vistas que requieren agrupamiento de eventos superpuestos
+            var groupedViews = ['timeGridDay', 'timeGridWeek'];
+            var currentNeedsGrouping = groupedViews.indexOf(currentViewType) !== -1;
+            var previousNeedsGrouping = groupedViews.indexOf(previousViewType) !== -1;
+
+            var needsRefetch = (currentNeedsGrouping && !previousNeedsGrouping)
+                            || (!currentNeedsGrouping && previousNeedsGrouping)
+                            || (currentNeedsGrouping && previousNeedsGrouping && currentViewType !== previousViewType);
 
             previousViewType = currentViewType;
 
