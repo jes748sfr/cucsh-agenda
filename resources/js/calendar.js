@@ -399,7 +399,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeWeekPopover() {
         weekPopoverEventId = null;
         weekPopover.classList.remove('fc-wpop-visible');
-        // Ocultar tras la transición
+        // Limpiar listeners del acordeon de grupo (si los hay)
+        cleanupAccordionListeners();
+        // Ocultar tras la transicion
         setTimeout(function () {
             weekPopover.style.display = 'none';
         }, 180);
@@ -420,6 +422,200 @@ document.addEventListener('DOMContentLoaded', function () {
             closeWeekPopover();
         }
     });
+
+    // ── Popover semanal para grupos: acordeon de eventos ──────────
+
+    // Listeners activos del acordeon (para limpiar al cerrar)
+    var weekGroupAccordionListeners = [];
+
+    /**
+     * Muestra el popover de grupo en la vista semanal (timeGridWeek).
+     * Genera un acordeon con N items colapsables, uno por evento del grupo.
+     * Solo un item expandido a la vez (el primero por defecto).
+     * @param {Object} ev - Pseudo-evento grupo de FullCalendar
+     * @param {HTMLElement} eventEl - Elemento DOM del pill clickeado
+     */
+    function showWeekGroupPopover(ev, eventEl) {
+        weekPopoverEventId = ev.id;
+        var props = ev.extendedProps;
+        var groupedEvents = props.groupedEvents || [];
+        var count = props.groupCount || groupedEvents.length;
+
+        // Limpiar listeners previos del acordeon
+        cleanupAccordionListeners();
+
+        // Formatear rango horario del grupo
+        var groupStart = ev.start ? fmtHora.format(ev.start) : '';
+        var groupEnd = ev.end ? fmtHora.format(ev.end) : '';
+        var rangoHorario = groupEnd ? groupStart + ' \u2013 ' + groupEnd : groupStart;
+
+        // Chevron SVG para items del acordeon
+        var chevronSvg = '<svg class="fc-wpop-accordion-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
+
+        // Construir HTML del popover
+        var html = '';
+
+        // Cabecera: rango horario + count + boton cerrar
+        html += '<div class="fc-wpop-header">';
+        html += '<div>';
+        html += '<h4 class="fc-wpop-title">+' + count + ' eventos</h4>';
+        html += '<span class="fc-wpop-sub">' + escapeHtml(rangoHorario) + '</span>';
+        html += '</div>';
+        html += '<button type="button" class="fc-wpop-close" aria-label="Cerrar">';
+        html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
+        html += '</button>';
+        html += '</div>';
+
+        // Acordeon: lista de items colapsables
+        html += '<div class="fc-wpop-accordion">';
+
+        for (var i = 0; i < groupedEvents.length; i++) {
+            var raw = groupedEvents[i];
+            var rawProps = raw.extendedProps || {};
+            var start = raw.start ? new Date(raw.start) : null;
+            var end = raw.end ? new Date(raw.end) : null;
+            var horaStart = start ? fmtHora.format(start) : '';
+            var horaEnd = end ? fmtHora.format(end) : '';
+            var horario = horaEnd ? horaStart + ' \u2013 ' + horaEnd : horaStart;
+            var pillColor = raw.backgroundColor || '#7FBCD2';
+            var isFirst = (i === 0);
+
+            html += '<div class="fc-wpop-accordion-item' + (isFirst ? ' fc-wpop-accordion-item--open' : '') + '" data-accordion-idx="' + i + '">';
+
+            // Cabecera clickable del item
+            html += '<button type="button" class="fc-wpop-accordion-header" data-accordion-toggle="' + i + '">';
+            html += '<div class="fc-wpop-accordion-bar" style="background-color:' + escapeHtml(pillColor) + '"></div>';
+            html += '<div class="fc-wpop-accordion-header-text">';
+            html += '<span class="fc-wpop-accordion-title">' + escapeHtml(raw.title || '') + '</span>';
+            html += '<span class="fc-wpop-accordion-time">' + escapeHtml(horario) + '</span>';
+            html += '</div>';
+            html += chevronSvg;
+            html += '</button>';
+
+            // Cuerpo expandible con campos de detalle
+            html += '<div class="fc-wpop-accordion-body"' + (isFirst ? ' style="max-height:500px"' : '') + '>';
+            html += '<div class="fc-wpop-accordion-body-inner">';
+
+            if (rawProps.tipo) {
+                html += '<div class="fc-wpop-field">';
+                html += '<span class="fc-wpop-label">Tipo de evento</span>';
+                html += '<span class="fc-wpop-value">' + escapeHtml(rawProps.tipo) + '</span>';
+                html += '</div>';
+            }
+
+            html += '<div class="fc-wpop-field">';
+            html += '<span class="fc-wpop-label">Institucion</span>';
+            html += '<span class="fc-wpop-value">' + escapeHtml(rawProps.institucion || 'Sin institucion') + '</span>';
+            html += '</div>';
+
+            html += '<div class="fc-wpop-field">';
+            html += '<span class="fc-wpop-label">Organizador</span>';
+            html += '<span class="fc-wpop-value">' + escapeHtml(rawProps.organizador || 'Sin organizador') + '</span>';
+            if (rawProps.administracion) {
+                html += '<span class="fc-wpop-sub">' + escapeHtml(rawProps.administracion) + '</span>';
+            }
+            html += '</div>';
+
+            if (rawProps.ubicacion) {
+                html += '<div class="fc-wpop-field">';
+                html += '<span class="fc-wpop-label">Ubicacion</span>';
+                html += '<span class="fc-wpop-value">' + escapeHtml(rawProps.ubicacion) + '</span>';
+                html += '</div>';
+            }
+
+            if (rawProps.notas_cta) {
+                html += '<div class="fc-wpop-divider"></div>';
+                html += '<div class="fc-wpop-field">';
+                html += '<span class="fc-wpop-label">Notas CTA</span>';
+                html += '<span class="fc-wpop-value fc-wpop-notes">' + escapeHtml(rawProps.notas_cta) + '</span>';
+                html += '</div>';
+            }
+
+            // Link a vista completa (solo modo autenticado)
+            if (!window.__calendarPublicMode && rawProps.evento_id) {
+                html += '<div class="fc-wpop-accordion-link">';
+                html += '<a href="/eventos/' + rawProps.evento_id + '" class="fc-wpop-link">';
+                html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
+                html += '<span>Ver evento</span>';
+                html += '</a>';
+                html += '</div>';
+            }
+
+            html += '</div>'; // .fc-wpop-accordion-body-inner
+            html += '</div>'; // .fc-wpop-accordion-body
+            html += '</div>'; // .fc-wpop-accordion-item
+        }
+
+        html += '</div>'; // .fc-wpop-accordion
+
+        weekPopover.innerHTML = html;
+        weekPopover.style.display = 'block';
+
+        // Posicionar respecto a la columna del dia
+        positionWeekPopover(eventEl);
+
+        // Bind cierre por boton X
+        var closeBtn = weekPopover.querySelector('.fc-wpop-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeWeekPopover);
+        }
+
+        // Bind toggle de items del acordeon
+        var toggleBtns = weekPopover.querySelectorAll('[data-accordion-toggle]');
+        for (var t = 0; t < toggleBtns.length; t++) {
+            var handler = (function (btn) {
+                return function () {
+                    var idx = parseInt(btn.getAttribute('data-accordion-toggle'), 10);
+                    toggleWeekAccordionItem(idx);
+                };
+            })(toggleBtns[t]);
+
+            toggleBtns[t].addEventListener('click', handler);
+            weekGroupAccordionListeners.push({ el: toggleBtns[t], handler: handler });
+        }
+    }
+
+    /**
+     * Expande/colapsa un item del acordeon del popover semanal.
+     * Solo un item abierto a la vez.
+     * @param {number} idx - Indice del item a alternar
+     */
+    function toggleWeekAccordionItem(idx) {
+        var items = weekPopover.querySelectorAll('.fc-wpop-accordion-item');
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var itemIdx = parseInt(item.getAttribute('data-accordion-idx'), 10);
+            var body = item.querySelector('.fc-wpop-accordion-body');
+            if (!body) continue;
+
+            if (itemIdx === idx) {
+                // Toggle: si ya esta abierto, cerrarlo; si no, abrirlo
+                var isOpen = item.classList.contains('fc-wpop-accordion-item--open');
+                if (isOpen) {
+                    item.classList.remove('fc-wpop-accordion-item--open');
+                    body.style.maxHeight = '0';
+                } else {
+                    item.classList.add('fc-wpop-accordion-item--open');
+                    body.style.maxHeight = body.scrollHeight + 'px';
+                }
+            } else {
+                // Cerrar los demas
+                item.classList.remove('fc-wpop-accordion-item--open');
+                body.style.maxHeight = '0';
+            }
+        }
+    }
+
+    /**
+     * Limpia los event listeners del acordeon del popover de grupo.
+     */
+    function cleanupAccordionListeners() {
+        for (var i = 0; i < weekGroupAccordionListeners.length; i++) {
+            var entry = weekGroupAccordionListeners[i];
+            entry.el.removeEventListener('click', entry.handler);
+        }
+        weekGroupAccordionListeners = [];
+    }
 
     // ── Agrupamiento de eventos superpuestos (timeGridDay) ──────────
 
@@ -839,12 +1035,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // ── Vista semanal: popover de detalle (toggle) ──
             if (isTimeGridWeek) {
-                // Si el popover ya está abierto para este mismo evento, cerrarlo
+                // Si el popover ya esta abierto para este mismo evento, cerrarlo
                 if (weekPopover.style.display !== 'none' && weekPopoverEventId === ev.id) {
                     closeWeekPopover();
                     return;
                 }
-                showWeekPopover(ev, info.el);
+
+                // Pills de grupo → popover con acordeon
+                if (props.isGroup) {
+                    showWeekGroupPopover(ev, info.el);
+                } else {
+                    showWeekPopover(ev, info.el);
+                }
                 return;
             }
 
