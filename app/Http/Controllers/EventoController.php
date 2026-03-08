@@ -75,8 +75,9 @@ class EventoController extends Controller
         }
 
         $vista = $request->input('vista');
+        $fecha = $request->input('fecha');
         $redirectUrl = $request->input('from') === 'dashboard'
-            ? route('dashboard') . ($vista ? '?vista=' . urlencode($vista) : '')
+            ? route('dashboard') . '?' . http_build_query(array_filter(['vista' => $vista, 'fecha' => $fecha]))
             : route('eventos.index');
 
         if ($request->expectsJson()) {

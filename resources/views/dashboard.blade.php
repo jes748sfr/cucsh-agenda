@@ -132,7 +132,7 @@
             {{-- Nivel 3: Badge de fecha + controles de navegación + dropdown vista + nuevo evento --}}
             <div class="flex items-center justify-between gap-3 flex-shrink-0 mb-2"
                  x-data="{
-                     mesCorto: '', diaNum: '', titulo: '', diaSemana: '', fechaISO: '',
+                     mesCorto: '', diaNum: '', titulo: '', diaSemana: '', fechaISO: '', fechaFinISO: '',
                      vistaActual: new URLSearchParams(window.location.search).get('vista') || 'dayGridMonth',
                      vistaOpen: false,
                      vistas: [
@@ -144,6 +144,24 @@
                      get vistaLabel() {
                          const v = this.vistas.find(v => v.key === this.vistaActual);
                          return v ? v.label : 'Mes';
+                     },
+                     get puedeCrear() {
+                         const hoy = new Date();
+                         hoy.setHours(0,0,0,0);
+                         const fecha = new Date(this.fechaISO + 'T00:00:00');
+
+                         if (this.vistaActual === 'timeGridDay') {
+                             return fecha >= hoy;
+                         }
+                         if (this.vistaActual === 'timeGridWeek') {
+                             const finSemana = new Date(this.fechaFinISO + 'T00:00:00');
+                             return finSemana >= hoy;
+                         }
+                         if (this.vistaActual === 'dayGridMonth') {
+                             const finMes = new Date(this.fechaFinISO + 'T00:00:00');
+                             return finMes >= hoy;
+                         }
+                         return true;
                      },
                      cambiarVista(key) {
                          this.vistaActual = key;
@@ -158,6 +176,7 @@
                      diaSemana = $event.detail.diaSemana;
                      if ($event.detail.viewType) vistaActual = $event.detail.viewType;
                      if ($event.detail.fechaISO) fechaISO = $event.detail.fechaISO;
+                     if ($event.detail.fechaFinISO) fechaFinISO = $event.detail.fechaFinISO;
                  "
             >
                 {{-- Izquierda: Badge + texto --}}
@@ -231,11 +250,14 @@
                         </div>
                     </div>
 
-                    {{-- Boton nuevo evento (pre-llena fecha en vista diaria, preserva vista) --}}
+                    {{-- Boton nuevo evento (pre-llena fecha, preserva vista y fecha de navegacion) --}}
                     @can('eventos.crear')
                         <a :href="vistaActual === 'timeGridDay' && fechaISO
                             ? '{{ route('eventos.create') }}?fecha=' + fechaISO + '&hora_inicio=07:00&from=dashboard&vista=' + vistaActual
-                            : '{{ route('eventos.create') }}?from=dashboard&vista=' + vistaActual">
+                            : '{{ route('eventos.create') }}?from=dashboard&vista=' + vistaActual + (fechaISO ? '&fecha=' + fechaISO : '')"
+                           :class="{ 'pointer-events-none opacity-50': !puedeCrear }"
+                           x-bind:tabindex="puedeCrear ? 0 : -1"
+                        >
                             <x-primary-button class="cal-add-event-btn">
                                 <svg class="w-4 h-4 mr-1 -ml-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                 Nuevo evento

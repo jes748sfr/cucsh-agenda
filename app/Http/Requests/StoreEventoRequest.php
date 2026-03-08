@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\EventoFecha;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -25,7 +26,7 @@ class StoreEventoRequest extends FormRequest
             'notas_cta' => ['nullable', 'string', 'max:5000'],
             'notas_servicios' => ['nullable', 'string', 'max:5000'],
             'fechas' => ['required', 'array', 'min:1'],
-            'fechas.*.fecha' => ['required', 'date'],
+            'fechas.*.fecha' => ['required', 'date', 'after_or_equal:today'],
             'fechas.*.hora_inicio' => ['required', 'date_format:H:i'],
             'fechas.*.hora_fin' => ['required', 'date_format:H:i', 'after:fechas.*.hora_inicio'],
         ];
@@ -37,8 +38,26 @@ class StoreEventoRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            $ubicacionId = $this->input('ubicacion_id');
+            // Validar que la hora de inicio no haya pasado si la fecha es hoy
             $fechas = $this->input('fechas', []);
+            $hoy = Carbon::today('America/Mexico_City');
+            $horaActual = Carbon::now('America/Mexico_City')->format('H:i');
+
+            foreach ($fechas as $i => $fecha) {
+                if (empty($fecha['fecha']) || empty($fecha['hora_inicio'])) {
+                    continue;
+                }
+
+                // Solo validar si la fecha es hoy
+                if (Carbon::parse($fecha['fecha'])->isSameDay($hoy) && $fecha['hora_inicio'] < $horaActual) {
+                    $validator->errors()->add(
+                        "fechas.{$i}.hora_inicio",
+                        'La hora de inicio ya pasó para la fecha de hoy.'
+                    );
+                }
+            }
+
+            $ubicacionId = $this->input('ubicacion_id');
 
             if (! $ubicacionId || empty($fechas) || $validator->errors()->hasAny(['fechas', 'ubicacion_id'])) {
                 return;
@@ -89,6 +108,7 @@ class StoreEventoRequest extends FormRequest
             'fechas.min' => 'Debe agregar al menos una fecha al evento.',
             'fechas.*.fecha.required' => 'La fecha es obligatoria.',
             'fechas.*.fecha.date' => 'La fecha debe ser una fecha válida.',
+            'fechas.*.fecha.after_or_equal' => 'La fecha no puede ser anterior a hoy.',
             'fechas.*.hora_inicio.required' => 'La hora de inicio es obligatoria.',
             'fechas.*.hora_inicio.date_format' => 'La hora de inicio debe tener formato HH:MM.',
             'fechas.*.hora_fin.required' => 'La hora de fin es obligatoria.',

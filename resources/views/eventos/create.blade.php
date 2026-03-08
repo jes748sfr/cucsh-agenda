@@ -2,8 +2,9 @@
     @php
         $from = request()->query('from');
         $vista = request()->query('vista');
+        $fechaNav = request()->query('fecha');
         $parentUrl = $from === 'dashboard'
-            ? route('dashboard') . ($vista ? '?vista=' . urlencode($vista) : '')
+            ? route('dashboard') . '?' . http_build_query(array_filter(['vista' => $vista, 'fecha' => $fechaNav]))
             : route('eventos.index');
         $parentLabel = $from === 'dashboard' ? 'Panel' : 'Eventos';
     @endphp
@@ -30,6 +31,9 @@
             @endif
             @if ($vista)
                 <input type="hidden" name="vista" value="{{ $vista }}">
+            @endif
+            @if (request()->query('fecha'))
+                <input type="hidden" name="fecha" value="{{ request()->query('fecha') }}">
             @endif
 
             <div class="space-y-10">
@@ -397,7 +401,54 @@
                     ]];
                 @endphp
                 <div
-                    x-data="{ fechas: {{ Js::from(old('fechas', $defaultFechas)) }} }"
+                    x-data="{
+                        fechas: {{ Js::from(old('fechas', $defaultFechas)) }},
+                        rangoOpen: false,
+                        rangoDesde: '',
+                        rangoHasta: '',
+                        rangoHoraInicio: '',
+                        rangoHoraFin: '',
+                        rangoError: '',
+                        // Desactivar generador de rango si hay más de 1 fecha manual
+                        get rangoDisponible() {
+                            return this.fechas.length <= 1;
+                        },
+                        generarRango() {
+                            if (!this.rangoDesde || !this.rangoHasta || !this.rangoHoraInicio || !this.rangoHoraFin) {
+                                this.rangoError = 'Complete todos los campos del rango.';
+                                return;
+                            }
+                            if (this.rangoHoraFin <= this.rangoHoraInicio) {
+                                this.rangoError = 'La hora de fin debe ser posterior a la de inicio.';
+                                return;
+                            }
+                            const desde = new Date(this.rangoDesde + 'T00:00:00');
+                            const hasta = new Date(this.rangoHasta + 'T00:00:00');
+                            if (hasta < desde) {
+                                this.rangoError = 'La fecha final debe ser igual o posterior a la inicial.';
+                                return;
+                            }
+                            const diff = Math.round((hasta - desde) / 86400000) + 1;
+                            if (diff > 60) {
+                                this.rangoError = 'El rango no puede exceder 60 dias.';
+                                return;
+                            }
+                            this.rangoError = '';
+                            const nuevas = [];
+                            for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
+                                const yyyy = d.getFullYear();
+                                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                                const dd = String(d.getDate()).padStart(2, '0');
+                                nuevas.push({
+                                    fecha: yyyy + '-' + mm + '-' + dd,
+                                    hora_inicio: this.rangoHoraInicio,
+                                    hora_fin: this.rangoHoraFin
+                                });
+                            }
+                            // Siempre reemplaza todas las fechas con las generadas
+                            this.fechas = nuevas;
+                        }
+                    }"
                     class="border-b border-gray-200 pb-10"
                 >
                     <h3 class="text-base font-semibold text-gray-900">Fechas y horarios</h3>
@@ -405,6 +456,7 @@
 
                     <div class="mt-8 space-y-3">
 
+                        {{-- Filas individuales de fechas --}}
                         <template x-for="(item, i) in fechas" :key="i">
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-8 items-end">
 
@@ -418,6 +470,7 @@
                                         :id="'fecha_' + i"
                                         :name="'fechas[' + i + '][fecha]'"
                                         x-model="item.fecha"
+                                        :min="new Date().toISOString().slice(0,10)"
                                         class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                     >
                                     <template x-if="i === 0">
@@ -484,6 +537,20 @@
                             </div>
                         </template>
 
+                        {{-- Botón agregar fecha (copia horario de la última fila) --}}
+                        <button
+                            type="button"
+                            @click="(() => {
+                                const ultima = fechas[fechas.length - 1];
+                                fechas.push({ fecha: '', hora_inicio: ultima?.hora_inicio || '', hora_fin: ultima?.hora_fin || '' });
+                                rangoOpen = false;
+                            })()"
+                            class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover transition"
+                        >
+                            <x-heroicon-o-plus class="h-4 w-4" />
+                            Agregar fecha
+                        </button>
+
                         {{-- Errores de fechas (server-side en primera carga + AJAX dinámicos) --}}
                         <div x-show="fechaErrors.length > 0" x-cloak id="fecha-error-box"
                              class="rounded-md bg-red-50 border border-red-200 p-3">
@@ -509,15 +576,112 @@
                             </script>
                         @endif
 
-                        {{-- Botón agregar fecha --}}
-                        <button
-                            type="button"
-                            @click="fechas.push({ fecha: '', hora_inicio: '', hora_fin: '' })"
-                            class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover transition"
-                        >
-                            <x-heroicon-o-plus class="h-4 w-4" />
-                            Agregar fecha
-                        </button>
+                        {{-- Panel desplegable: Generador de rango de fechas --}}
+                        <div class="rounded-lg border border-gray-200 bg-gray-50/50 overflow-hidden">
+                            {{-- Trigger desplegable --}}
+                            <button type="button"
+                                    @click="if (rangoDisponible) rangoOpen = !rangoOpen"
+                                    :disabled="!rangoDisponible"
+                                    :class="{ 'opacity-50 cursor-not-allowed': !rangoDisponible }"
+                                    class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                            >
+                                <span class="inline-flex items-center gap-2">
+                                    <x-heroicon-o-calendar-days class="h-4 w-4 text-gray-500" />
+                                    Generar rango de fechas
+                                </span>
+                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                                     :class="rangoOpen && 'rotate-180'"
+                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
+                                </svg>
+                            </button>
+
+                            {{-- Contenido desplegable --}}
+                            <div x-show="rangoOpen"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 -translate-y-1"
+                                 x-cloak
+                                 class="border-t border-gray-200 px-4 py-4"
+                            >
+                                <p class="text-xs text-gray-500 mb-3">Genera multiples fechas con el mismo horario. Maximo 60 dias.</p>
+
+                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                                    {{-- Fecha desde --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                                        <input
+                                            type="date"
+                                            x-model="rangoDesde"
+                                            :min="new Date().toISOString().slice(0,10)"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        >
+                                    </div>
+                                    {{-- Fecha hasta --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                                        <input
+                                            type="date"
+                                            x-model="rangoHasta"
+                                            :min="new Date().toISOString().slice(0,10)"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        >
+                                    </div>
+                                    {{-- Hora inicio --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
+                                        <select
+                                            x-model="rangoHoraInicio"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        >
+                                            <option value="">--:--</option>
+                                            @for ($h = 7; $h <= 22; $h++)
+                                                <option value="{{ sprintf('%02d:00', $h) }}">{{ sprintf('%02d:00', $h) }}</option>
+                                                @if ($h < 22)
+                                                    <option value="{{ sprintf('%02d:30', $h) }}">{{ sprintf('%02d:30', $h) }}</option>
+                                                @endif
+                                            @endfor
+                                        </select>
+                                    </div>
+                                    {{-- Hora fin --}}
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fin</label>
+                                        <select
+                                            x-model="rangoHoraFin"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        >
+                                            <option value="">--:--</option>
+                                            @for ($h = 7; $h <= 22; $h++)
+                                                <option value="{{ sprintf('%02d:00', $h) }}">{{ sprintf('%02d:00', $h) }}</option>
+                                                @if ($h < 22)
+                                                    <option value="{{ sprintf('%02d:30', $h) }}">{{ sprintf('%02d:30', $h) }}</option>
+                                                @endif
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {{-- Error del rango --}}
+                                <p x-show="rangoError" x-text="rangoError" x-cloak class="mt-2 text-sm text-red-600"></p>
+
+                                {{-- Boton generar --}}
+                                <button
+                                    type="button"
+                                    @click="generarRango()"
+                                    class="mt-3 inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-udg-gold/30"
+                                >
+                                    <x-heroicon-o-calendar-days class="h-4 w-4" />
+                                    Generar fechas
+                                </button>
+                            </div>
+                        </div>
+                        {{-- Aviso cuando el generador de rango está desactivado --}}
+                        <p x-show="!rangoDisponible" x-cloak class="mt-1 text-xs text-gray-400">
+                            El generador de rango no está disponible cuando hay múltiples fechas agregadas manualmente.
+                        </p>
 
                     </div>
                 </div>

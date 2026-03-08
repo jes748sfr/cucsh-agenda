@@ -708,12 +708,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
     const vistaParam = urlParams.get('vista');
     const initialViewFromUrl = vistaValidas.includes(vistaParam) ? vistaParam : 'dayGridMonth';
+    const fechaParam = urlParams.get('fecha');
 
     const calendar = new Calendar(calendarEl, {
         plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
 
         // Vistas — restaurar la vista previa si viene en la URL
         initialView: initialViewFromUrl,
+        initialDate: fechaParam || undefined,
         headerToolbar: false,
 
         // Localización
@@ -895,6 +897,12 @@ document.addEventListener('DOMContentLoaded', function () {
             var mm = String(ref.getMonth() + 1).padStart(2, '0');
             var dd = String(ref.getDate()).padStart(2, '0');
 
+            // Fecha fin del periodo visible (info.end es exclusivo, restar 1 dia)
+            var endDate = new Date(info.end.getTime() - 86400000);
+            var endYyyy = endDate.getFullYear();
+            var endMm = String(endDate.getMonth() + 1).padStart(2, '0');
+            var endDd = String(endDate.getDate()).padStart(2, '0');
+
             window.dispatchEvent(new CustomEvent('calendar-date-change', {
                 detail: {
                     mesCorto: fmtMesCorto.format(ref).replace('.', '').toUpperCase(),
@@ -903,6 +911,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     diaSemana: fmtDiaSemana.format(ref),
                     viewType: info.view.type,
                     fechaISO: yyyy + '-' + mm + '-' + dd,
+                    fechaFinISO: endYyyy + '-' + endMm + '-' + endDd,
                 }
             }));
 
