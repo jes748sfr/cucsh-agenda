@@ -658,15 +658,50 @@ document.addEventListener('DOMContentLoaded', function () {
         weekGroupAccordionListeners = [];
     }
 
-    // ── Agrupamiento de eventos superpuestos (timeGridDay) ──────────
+    // ── Agrupamiento de eventos superpuestos (timeGrid) ─────────────
 
     /**
-     * Detecta grupos de eventos que se solapan temporalmente.
-     * Usa unión transitiva: si A↔B y B↔C, los tres forman un grupo.
+     * Agrupa eventos superpuestos para vistas timeGrid.
+     * En timeGridWeek particiona por día antes de agrupar para evitar
+     * que eventos de días distintos con horarios iguales se fusionen.
      * @param {Array} events - Eventos con start/end como strings ISO
+     * @param {string} viewType - Tipo de vista ('timeGridDay'|'timeGridWeek')
      * @returns {Array} Eventos procesados (pseudo-eventos grupo + individuales)
      */
-    function groupOverlappingEvents(events) {
+    function groupOverlappingEvents(events, viewType) {
+        if (!events || events.length === 0) return events;
+
+        // timeGridWeek: particionar por día antes de agrupar
+        if (viewType === 'timeGridWeek') {
+            var byDay = {};
+            for (var i = 0; i < events.length; i++) {
+                var dayKey = (events[i].start || '').substring(0, 10);
+                if (!byDay[dayKey]) byDay[dayKey] = [];
+                byDay[dayKey].push(events[i]);
+            }
+            var result = [];
+            var dayKeys = Object.keys(byDay).sort();
+            for (var d = 0; d < dayKeys.length; d++) {
+                var dayResult = groupOverlappingInDay(byDay[dayKeys[d]], dayKeys[d]);
+                for (var j = 0; j < dayResult.length; j++) {
+                    result.push(dayResult[j]);
+                }
+            }
+            return result;
+        }
+
+        // timeGridDay: todos los eventos en el mismo día
+        return groupOverlappingInDay(events, 'day');
+    }
+
+    /**
+     * Agrupa eventos solapados dentro de un mismo día.
+     * Usa unión transitiva: si A↔B y B↔C, los tres forman un grupo.
+     * @param {Array} events - Eventos del mismo día
+     * @param {string} dayKey - Clave de día para IDs únicos de grupo
+     * @returns {Array} Eventos procesados
+     */
+    function groupOverlappingInDay(events, dayKey) {
         if (!events || events.length === 0) return events;
 
         // Parsear y ordenar por hora de inicio
@@ -720,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 result.push({
-                    id: 'group-' + g,
+                    id: 'group-' + dayKey + '-' + g,
                     title: '+' + group.length + ' eventos agendados',
                     start: new Date(minStart).toISOString(),
                     end: new Date(maxEnd).toISOString(),
@@ -743,6 +778,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // el segundo datesSet detecta que fue provocado por un refetch y no repite.
     var isRefetching = false;
     var previousViewType = null;
+
+    // Cache de datos crudos de la API (sin agrupar) para re-agrupar
+    // al cambiar de vista sin hacer un nuevo fetch HTTP.
+    // Elimina la race condition: el regrouping es síncrono desde cache.
+    var rawEventsCache = null;
+    var rawEventsCacheKey = '';
 
     // Leer vista inicial desde parametro URL ?vista= (si existe y es valida)
     const vistaValidas = ['dayGridMonth', 'timeGridWeek', 'timeGridDay', 'listWeek'];
@@ -879,7 +920,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return { html: html };
         },
 
-        // Eventos desde API — lee filtros del componente Alpine
+        // Eventos desde API — lee filtros del componente Alpine.
+        // Usa cache de datos crudos para re-agrupar al cambiar de vista
+        // sin repetir la petición HTTP (elimina race condition).
         events: function (fetchInfo, successCallback, failureCallback) {
             var params = new URLSearchParams();
             params.set('start', fetchInfo.startStr);
@@ -891,7 +934,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 Object.keys(apiParams).forEach(function (key) {
                     var value = apiParams[key];
                     if (Array.isArray(value)) {
-                        // Serializar arrays como parametros repetidos: key=1&key=2
                         value.forEach(function (v) {
                             params.append(key, v);
                         });
@@ -901,13 +943,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
+            var cacheKey = params.toString();
+
+            // Cache hit: re-agrupar datos existentes sin llamar a la API.
+            // calendar.view.type se lee solo aquí (no antes) porque en la
+            // primera llamada durante render() el view puede no existir aún.
+            if (rawEventsCache !== null && rawEventsCacheKey === cacheKey) {
+                var viewType = calendar.view.type;
+                var cached = rawEventsCache.slice();
+                if (viewType === 'timeGridDay' || viewType === 'timeGridWeek') {
+                    cached = groupOverlappingEvents(cached, viewType);
+                }
+                successCallback(cached);
+                return;
+            }
+
+            // Cache miss: fetch desde la API
             fetch('/api/events?' + params.toString())
                 .then(function (response) { return response.json(); })
                 .then(function (data) {
-                    // Agrupar eventos superpuestos en vistas diaria y semanal
-                    var viewType = calendar.view.type;
-                    if (viewType === 'timeGridDay' || viewType === 'timeGridWeek') {
-                        data = groupOverlappingEvents(data);
+                    // Cachear datos crudos (sin agrupar)
+                    rawEventsCache = data;
+                    rawEventsCacheKey = cacheKey;
+
+                    // Agrupar según vista actual
+                    var currentViewType = calendar.view.type;
+                    if (currentViewType === 'timeGridDay' || currentViewType === 'timeGridWeek') {
+                        data = groupOverlappingEvents(data, currentViewType);
                     }
                     successCallback(data);
                 })
@@ -1334,6 +1396,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Escuchar evento custom de refetch disparado por los tabs Alpine
     window.addEventListener('calendar-refetch', function () {
+        rawEventsCache = null; // Invalidar cache para forzar nuevo fetch
         calendar.refetchEvents();
     });
 
