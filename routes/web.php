@@ -11,8 +11,8 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return view('landing');
+})->name('landing');
 
 // Calendario público (sin autenticación)
 Route::get('/calendario', function () {
