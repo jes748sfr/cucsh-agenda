@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property int $organizador_id
  * @property int|null $ubicacion_id
  * @property bool $activo
+ * @property string $color
  * @property string|null $notas_cta
  * @property string|null $notas_servicios
  * @property int $institucion_id
@@ -38,6 +39,7 @@ class Evento extends Model
         'organizador_id',
         'ubicacion_id',
         'activo',
+        'color',
         'notas_cta',
         'notas_servicios',
         'institucion_id',
