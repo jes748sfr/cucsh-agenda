@@ -389,11 +389,17 @@
                                                  :style="'background-color:' + (ev.backgroundColor || '#7FBCD2')"
                                             ></div>
                                             <div class="flex-1 min-w-0">
-                                                {{-- Titulo --}}
-                                                <p class="text-sm font-semibold text-gray-900 truncate"
-                                                   :class="expandedIdx === idx && 'text-udg-blue'"
-                                                   x-text="ev.title"
-                                                ></p>
+                                                {{-- Titulo + dot importante --}}
+                                                <div class="flex items-center gap-1.5 min-w-0">
+                                                    <p class="text-sm font-semibold text-gray-900 truncate"
+                                                       :class="expandedIdx === idx && 'text-udg-blue'"
+                                                       x-text="ev.title"
+                                                    ></p>
+                                                    <span x-show="ev.backgroundColor === '#FF6868'"
+                                                          class="w-2 h-2 rounded-full bg-[#FF6868] flex-shrink-0"
+                                                          style="animation: fc-pulse 2s ease-in-out infinite"
+                                                    ></span>
+                                                </div>
                                                 {{-- Horario --}}
                                                 <p class="text-xs text-gray-500 mt-0.5" x-text="ev.horario"></p>
                                                 {{-- Tipo + Organizador (resumen cuando cerrado) --}}

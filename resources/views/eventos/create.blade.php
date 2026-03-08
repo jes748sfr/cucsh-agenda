@@ -391,7 +391,18 @@
 
                         {{-- Color del evento --}}
                         <div class="col-span-full" x-data="{ color: '{{ old('color', '#7FBCD2') }}' }">
-                            <x-input-label value="Color del evento" />
+                            <div class="flex items-center gap-3">
+                                <x-input-label value="Color del evento" class="!mb-0" />
+                                <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
+                                      :style="'background-color: ' + color">
+                                    <span x-text="{
+                                        '#7FBCD2': 'Global',
+                                        '#FF6868': 'Importante',
+                                        '#FFBB64': 'Administrativo',
+                                        '#B1C29E': 'Externo'
+                                    }[color] || ''"></span>
+                                </span>
+                            </div>
                             <p class="mt-1 text-xs text-gray-500">Define el color de la pill del evento en el calendario. Cada color representa una categoria visual.</p>
                             <input type="hidden" name="color" :value="color">
                             <div class="mt-3 flex flex-wrap gap-3">
@@ -431,17 +442,6 @@
                                         <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                     </span>
                                 </button>
-                            </div>
-                            <div class="mt-3">
-                                <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
-                                      :style="'background-color: ' + color">
-                                    <span x-text="{
-                                        '#7FBCD2': 'Global',
-                                        '#FF6868': 'Importante',
-                                        '#FFBB64': 'Administrativo',
-                                        '#B1C29E': 'Externo'
-                                    }[color] || ''"></span>
-                                </span>
                             </div>
                             <x-input-error :messages="$errors->get('color')" id="color-error" />
                             <template x-if="hasError('color')">

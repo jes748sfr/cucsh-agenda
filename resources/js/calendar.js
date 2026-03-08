@@ -30,6 +30,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // Icono reloj (Heroicons outline, 12x12) — usado en pills de timeGrid
     const iconClock = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="fc-tg-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>';
 
+    // Icono alerta (Heroicons outline) — usado para eventos importantes
+    const iconAlert = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>';
+
+    // Color que identifica eventos importantes
+    const IMPORTANT_COLOR = '#FF6868';
+
+    /**
+     * Verifica si un evento es "importante" por su color.
+     * @param {Object} ev - Evento de FullCalendar o raw event object
+     * @returns {boolean}
+     */
+    function isImportant(ev) {
+        var color = ev.backgroundColor || (ev.extendedProps && ev.extendedProps.color) || '';
+        return color.toUpperCase() === IMPORTANT_COLOR.toUpperCase();
+    }
+
     // Formateadores de fecha y hora en español
     const fmtFecha = new Intl.DateTimeFormat('es-MX', {
         weekday: 'short',
@@ -297,6 +313,12 @@ document.addEventListener('DOMContentLoaded', function () {
             html += '</div>';
         }
 
+        // Indicador de evento importante
+        if (isImportant(ev)) {
+            html += '<div class="fc-wpop-divider"></div>';
+            html += '<div class="fc-wpop-important">' + iconAlert + '<span>Evento importante</span></div>';
+        }
+
         html += '</div>';
 
         // Footer: link a vista completa (solo en modo autenticado)
@@ -455,11 +477,22 @@ document.addEventListener('DOMContentLoaded', function () {
         // Construir HTML del popover
         var html = '';
 
+        // Contar eventos importantes en el grupo
+        var groupImportantCount = 0;
+        for (var ic = 0; ic < groupedEvents.length; ic++) {
+            if (isImportant(groupedEvents[ic])) groupImportantCount++;
+        }
+
         // Cabecera: rango horario + count + boton cerrar
         html += '<div class="fc-wpop-header">';
         html += '<div>';
         html += '<h4 class="fc-wpop-title">+' + count + ' eventos</h4>';
+        html += '<div style="display:flex;align-items:center;gap:10px;margin-top:2px">';
         html += '<span class="fc-wpop-sub">' + escapeHtml(rangoHorario) + '</span>';
+        if (groupImportantCount > 0) {
+            html += '<span class="fc-wpop-important">' + iconAlert + '<span>' + groupImportantCount + ' importante' + (groupImportantCount > 1 ? 's' : '') + '</span></span>';
+        }
+        html += '</div>';
         html += '</div>';
         html += '<button type="button" class="fc-wpop-close" aria-label="Cerrar">';
         html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
@@ -486,7 +519,15 @@ document.addEventListener('DOMContentLoaded', function () {
             html += '<button type="button" class="fc-wpop-accordion-header" data-accordion-toggle="' + i + '">';
             html += '<div class="fc-wpop-accordion-bar" style="background-color:' + escapeHtml(pillColor) + '"></div>';
             html += '<div class="fc-wpop-accordion-header-text">';
-            html += '<span class="fc-wpop-accordion-title">' + escapeHtml(raw.title || '') + '</span>';
+            var rawIsImportant = isImportant(raw);
+            if (rawIsImportant) {
+                html += '<div class="fc-wpop-accordion-title-wrap">';
+                html += '<span class="fc-wpop-accordion-title">' + escapeHtml(raw.title || '') + '</span>';
+                html += '<span class="fc-important-dot"></span>';
+                html += '</div>';
+            } else {
+                html += '<span class="fc-wpop-accordion-title">' + escapeHtml(raw.title || '') + '</span>';
+            }
             html += '<span class="fc-wpop-accordion-time">' + escapeHtml(horario) + '</span>';
             html += '</div>';
             html += chevronSvg;
@@ -747,6 +788,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // ── Pill de grupo (eventos superpuestos) ──
             if (props.isGroup) {
                 var count = props.groupCount || 0;
+                var groupedEvents = props.groupedEvents || [];
+
+                // Contar eventos importantes en el grupo
+                var importantCount = 0;
+                for (var gi = 0; gi < groupedEvents.length; gi++) {
+                    if (isImportant(groupedEvents[gi])) importantCount++;
+                }
 
                 // Formatear rango horario del grupo
                 var groupStart = ev.start ? fmtHora.format(ev.start) : '';
@@ -754,7 +802,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 var rangoHorario = groupEnd ? groupStart + ' \u2013 ' + groupEnd : groupStart;
 
                 if (viewType === 'timeGridWeek') {
-                    // ── Pill compacto para vista semanal (2 lineas max) ──
+                    // ── Pill compacto para vista semanal (2-3 lineas max) ──
                     var html = '<div class="fc-tg-pill fc-tg-pill--week-group">';
 
                     // Linea 1: rango horario compacto
@@ -766,11 +814,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Linea 2: "+N eventos" (texto corto)
                     html += '<div class="fc-tg-title">+' + count + ' eventos</div>';
 
+                    // Linea 3: badge de importantes (si hay)
+                    if (importantCount > 0) {
+                        html += '<div class="fc-tg-important-badge">'
+                              + iconAlert
+                              + '<span>' + importantCount + ' importante' + (importantCount > 1 ? 's' : '') + '</span>'
+                              + '</div>';
+                    }
+
                     html += '</div>';
                     return { html: html };
                 }
 
-                // ── Pill para vista diaria (3 lineas) ──
+                // ── Pill para vista diaria (3-4 lineas) ──
                 var html = '<div class="fc-tg-pill">';
 
                 // Linea 1: hora con icono reloj
@@ -784,6 +840,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Linea 3: subtexto explicativo
                 html += '<div class="fc-tg-org">Eventos superpuestos en este horario</div>';
+
+                // Linea 4: badge de importantes (si hay)
+                if (importantCount > 0) {
+                    html += '<div class="fc-tg-important-badge">'
+                          + iconAlert
+                          + '<span>' + importantCount + ' evento' + (importantCount > 1 ? 's' : '') + ' importante' + (importantCount > 1 ? 's' : '') + '</span>'
+                          + '</div>';
+                }
 
                 html += '</div>';
                 return { html: html };
@@ -981,6 +1045,26 @@ document.addEventListener('DOMContentLoaded', function () {
             el.style.borderTop = 'none';
             el.style.borderBottom = 'none';
             el.style.color = '#1f2937';
+
+            // Dot pulsante para eventos importantes
+            if (pillColor.toUpperCase() === IMPORTANT_COLOR.toUpperCase() && !props.isGroup) {
+                var viewType = info.view.type;
+                var dot = document.createElement('span');
+                dot.className = 'fc-important-dot';
+
+                if (viewType === 'dayGridMonth') {
+                    // En vista mensual: posicionar en esquina superior derecha
+                    el.style.position = 'relative';
+                    el.appendChild(dot);
+                } else if (viewType === 'timeGridWeek' || viewType === 'timeGridDay') {
+                    // En timeGrid: insertar dot al inicio del pill custom
+                    var pillEl = el.querySelector('.fc-tg-pill');
+                    if (pillEl) {
+                        // Insertar antes de la primera linea del pill
+                        pillEl.insertBefore(dot, pillEl.firstChild);
+                    }
+                }
+            }
         },
 
         // ── Tooltip en hover (solo vista mensual) ──────────────
@@ -1005,6 +1089,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (props.institucion) {
                 html += '<div class="fc-tooltip-row">' + iconBuilding + '<span>' + escapeHtml(props.institucion) + '</span></div>';
+            }
+
+            // Indicador de evento importante
+            if (isImportant(ev)) {
+                html += '<div class="fc-tooltip-important">' + iconAlert + '<span>Importante</span></div>';
             }
 
             tooltip.innerHTML = html;

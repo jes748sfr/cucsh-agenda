@@ -680,3 +680,103 @@
 .fc-wpop-accordion-link {
     padding-top: 4px;
 }
+
+/* =============================================
+   Indicador de evento importante — dot pulsante
+   ============================================= */
+.fc-important-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #FF6868;
+    flex-shrink: 0;
+    animation: fc-pulse 2s ease-in-out infinite;
+}
+/* Dot posicionado en esquina superior derecha de pill mensual */
+.fc-daygrid-event .fc-important-dot {
+    position: absolute;
+    top: 2px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+}
+
+@keyframes fc-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Badge de importantes en pills de grupo (timeGrid) */
+.fc-tg-important-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #FF6868;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    line-height: 1.2;
+    margin-top: 2px;
+}
+.fc-tg-important-badge svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+}
+.fc-timeGridDay-view .fc-tg-important-badge {
+    font-size: 0.85rem;
+}
+.fc-timeGridDay-view .fc-tg-important-badge svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Fila "Importante" en tooltip mensual */
+.fc-tooltip-important {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FF6868;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #f3f4f6;
+}
+.fc-tooltip-important svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+/* Badge "Importante" en popover semanal */
+.fc-wpop-important {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #FF6868;
+    margin-top: 2px;
+}
+.fc-wpop-important svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+/* Dot en cabecera de acordeon junto al titulo */
+.fc-wpop-accordion-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+}
+.fc-wpop-accordion-title-wrap .fc-wpop-accordion-title {
+    flex: 1;
+    min-width: 0;
+}
