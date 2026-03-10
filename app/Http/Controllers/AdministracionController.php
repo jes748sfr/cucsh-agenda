@@ -17,7 +17,7 @@ class AdministracionController extends Controller
 
         $administraciones = Administracion::withCount('organizadores')
             ->orderBy('nombre')
-            ->paginate(15);
+            ->paginate(12);
 
         return view('administraciones.index', compact('administraciones'));
     }

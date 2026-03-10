@@ -1,17 +1,32 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Ubicaciones</h2>
-            @can('catalogos.crear')
-                <a href="{{ route('ubicaciones.create') }}">
-                    <x-primary-button>
-                        <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
-                        Nueva ubicación
-                    </x-primary-button>
-                </a>
-            @endcan
-        </div>
+        <h2 class="text-lg font-semibold text-gray-900">Catálogos</h2>
     </x-slot>
+
+    {{-- Cabecera en el área de contenido --}}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Ubicaciones</h1>
+        <p class="text-sm text-gray-500 mt-1">Espacios físicos disponibles para la realización de eventos.</p>
+    </div>
+
+    {{-- Barra de acciones --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p class="text-sm font-medium text-gray-700">
+            Todas las ubicaciones
+            <span class="ml-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {{ $ubicaciones->total() }}
+            </span>
+        </p>
+
+        @can('catalogos.crear')
+            <a href="{{ route('ubicaciones.create') }}">
+                <x-primary-button>
+                    <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
+                    Nueva ubicación
+                </x-primary-button>
+            </a>
+        @endcan
+    </div>
 
     <x-table>
         <thead class="bg-gray-50">

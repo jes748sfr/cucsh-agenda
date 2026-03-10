@@ -18,7 +18,7 @@ class OrganizadorController extends Controller
 
         $organizadores = Organizador::with('administracion')
             ->orderBy('nombre')
-            ->paginate(15);
+            ->paginate(12);
 
         return view('organizadores.index', compact('organizadores'));
     }

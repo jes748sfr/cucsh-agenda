@@ -3,6 +3,31 @@
         <h2 class="text-lg font-semibold text-gray-900">Organizadores</h2>
     </x-slot>
 
+    {{-- Cabecera en el área de contenido --}}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Organizadores</h1>
+        <p class="text-sm text-gray-500 mt-1">Personas y entidades responsables de organizar eventos.</p>
+    </div>
+
+    {{-- Barra de acciones --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p class="text-sm font-medium text-gray-700">
+            Todos los organizadores
+            <span class="ml-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {{ $organizadores->total() }}
+            </span>
+        </p>
+
+        @can('organizadores.crear')
+            <a href="{{ route('organizadores.create') }}">
+                <x-primary-button>
+                    <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
+                    Nuevo organizador
+                </x-primary-button>
+            </a>
+        @endcan
+    </div>
+
     <x-table>
         <thead class="bg-gray-50">
             <tr>

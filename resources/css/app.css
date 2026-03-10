@@ -8,6 +8,30 @@
 }
 
 /* =============================================
+   Guest layout — panel derecho slide-in
+   ============================================= */
+.guest-panel-right {
+    animation: guest-slide-in 0.7s ease-out both;
+}
+@keyframes guest-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Respetar preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+    .guest-panel-right {
+        animation: none;
+    }
+}
+
+/* =============================================
    Tabs de filtro — pills estilo referencia
    ============================================= */
 .cal-filter-pill {

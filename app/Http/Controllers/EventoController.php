@@ -24,12 +24,30 @@ class EventoController extends Controller
     {
         $this->authorize('viewAny', Evento::class);
 
-        $eventos = Evento::with(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel'])
-            ->withCount('fechas')
-            ->latest()
-            ->paginate(15);
+        $query = Evento::with(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel', 'fechas'])
+            ->latest();
 
-        return view('eventos.index', compact('eventos'));
+        // Filtro por estado
+        if (request()->filled('estado')) {
+            $query->where('activo', request('estado') === 'activo');
+        }
+
+        // Filtro por tipo de evento
+        if (request()->filled('tipo')) {
+            $query->where('eventos_tipo_id', request('tipo'));
+        }
+
+        // Filtro por fecha de inicio (eventos con al menos una fecha >= la indicada)
+        if (request()->filled('fecha_inicio')) {
+            $query->whereHas('fechas', function ($q) {
+                $q->where('fecha', '>=', request('fecha_inicio'));
+            });
+        }
+
+        $eventos = $query->paginate(10)->withQueryString();
+        $tipos = EventoTipo::orderBy('nombre')->get();
+
+        return view('eventos.index', compact('eventos', 'tipos'));
     }
 
     /**

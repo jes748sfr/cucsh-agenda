@@ -60,15 +60,16 @@ Route::middleware('auth')->group(function () {
             ->parameters(['ubicaciones' => 'ubicacion'])->only(['index', 'show']);
     });
 
+    // Organizadores - escritura ANTES de lectura para que /create
+    // no sea capturada por /{organizador} (show) como parámetro
+    Route::resource('organizadores', OrganizadorController::class)
+        ->parameters(['organizadores' => 'organizador'])->except(['index', 'show']);
+
     // Organizadores - lectura (organizadores.ver)
     Route::middleware('permission:organizadores.ver')->group(function () {
         Route::resource('organizadores', OrganizadorController::class)
             ->parameters(['organizadores' => 'organizador'])->only(['index', 'show']);
     });
-
-    // Organizadores - escritura (policies controlan acceso granular)
-    Route::resource('organizadores', OrganizadorController::class)
-        ->parameters(['organizadores' => 'organizador'])->except(['index', 'show']);
 
     // Usuarios - permisos granulares por accion
     Route::get('users', [UserController::class, 'index'])

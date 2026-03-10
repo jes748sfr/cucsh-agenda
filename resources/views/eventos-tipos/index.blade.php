@@ -1,15 +1,30 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-gray-900">Tipos de Evento</h2>
-            @can('catalogos.crear')
-                <x-primary-button type="button" x-data @click="$dispatch('catalog-create')">
-                    <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
-                    Nuevo tipo
-                </x-primary-button>
-            @endcan
-        </div>
+        <h2 class="text-lg font-semibold text-gray-900">Catálogos</h2>
     </x-slot>
+
+    {{-- Cabecera en el área de contenido --}}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Tipos de Evento</h1>
+        <p class="text-sm text-gray-500 mt-1">Categorías para clasificar los eventos académicos.</p>
+    </div>
+
+    {{-- Barra de acciones --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p class="text-sm font-medium text-gray-700">
+            Todos los tipos
+            <span class="ml-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {{ $eventosTipos->total() }}
+            </span>
+        </p>
+
+        @can('catalogos.crear')
+            <x-primary-button type="button" x-data @click="$dispatch('catalog-create')">
+                <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
+                Nuevo tipo
+            </x-primary-button>
+        @endcan
+    </div>
 
     <div x-data="{
             editing: {{ $errors->any() && old('_editing') == '1' ? 'true' : 'false' }},

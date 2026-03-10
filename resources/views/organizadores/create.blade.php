@@ -1,9 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-2 text-sm text-gray-500">
-            <a href="{{ route('organizadores.index') }}" class="hover:text-primary transition-colors">Organizadores</a>
-            <x-heroicon-m-chevron-right class="h-4 w-4 flex-shrink-0" />
-            <span class="font-medium text-gray-900">Nuevo organizador</span>
+        <div class="flex items-center gap-4 min-w-0">
+            <a href="{{ route('organizadores.index') }}"
+               class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+               title="Volver al listado">
+                <x-heroicon-o-arrow-left class="h-5 w-5" />
+            </a>
+            <h2 class="text-lg font-semibold text-gray-900 truncate">Nuevo organizador</h2>
         </div>
     </x-slot>
 

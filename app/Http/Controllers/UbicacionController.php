@@ -19,7 +19,7 @@ class UbicacionController extends Controller
         $ubicaciones = Ubicacion::with('institucion')
             ->withCount('eventos')
             ->orderBy('nombre')
-            ->paginate(15);
+            ->paginate(12);
 
         return view('ubicaciones.index', compact('ubicaciones'));
     }

@@ -15,7 +15,7 @@ class InstitucionController extends Controller
     {
         $this->authorize('viewAny', Institucion::class);
 
-        $instituciones = Institucion::orderBy('nombre')->paginate(15);
+        $instituciones = Institucion::orderBy('nombre')->paginate(12);
 
         return view('instituciones.index', compact('instituciones'));
     }

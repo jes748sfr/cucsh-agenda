@@ -10,15 +10,7 @@
 
     {{-- Encabezado: Logo + Cerrar (móvil) --}}
     <div class="flex items-center justify-between h-14 px-5 border-b border-gray-100">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-x-2.5">
-            <img src="{{ asset('images/escudo-udg.png') }}"
-                 alt="Escudo Universidad de Guadalajara"
-                 class="h-8 w-auto">
-            <div class="flex flex-col leading-none">
-                <span class="text-sm font-bold text-primary tracking-wide">CUCSH</span>
-                <span class="text-[11px] text-gray-400 font-medium">Agenda universitaria</span>
-            </div>
-        </a>
+        <x-logo-cucsh size="sm" class="sm:flex" />
 
         {{-- Cerrar en móvil --}}
         <button @click="mobileMenu = false"

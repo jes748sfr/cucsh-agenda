@@ -28,11 +28,64 @@
         @endcan
     </div>
 
+    {{-- Filtros --}}
+    <form method="GET" action="{{ route('eventos.index') }}" class="mb-4 flex flex-wrap items-end gap-3">
+        {{-- Estado --}}
+        <div>
+            <label for="filtro-estado" class="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+            <select id="filtro-estado" name="estado"
+                class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30">
+                <option value="">Todos</option>
+                <option value="activo" {{ request('estado') === 'activo' ? 'selected' : '' }}>Activo</option>
+                <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+            </select>
+        </div>
+
+        {{-- Tipo de evento --}}
+        <div>
+            <label for="filtro-tipo" class="block text-xs font-medium text-gray-500 mb-1">Tipo de evento</label>
+            <select id="filtro-tipo" name="tipo"
+                class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30">
+                <option value="">Todos</option>
+                @foreach ($tipos as $tipo)
+                    <option value="{{ $tipo->id }}" {{ request('tipo') == $tipo->id ? 'selected' : '' }}>
+                        {{ $tipo->nombre }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- Fecha de inicio --}}
+        <div>
+            <label for="filtro-fecha" class="block text-xs font-medium text-gray-500 mb-1">Desde fecha</label>
+            <input type="date" id="filtro-fecha" name="fecha_inicio" value="{{ request('fecha_inicio') }}"
+                class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30">
+        </div>
+
+        {{-- Botones --}}
+        <div class="flex items-center self-center gap-9 ml-3 pl-3 border-l border-gray-200">
+            <button type="submit"
+                class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-udg-gold hover:text-udg-gold/80 focus:outline-none transition">
+                <x-heroicon-o-funnel class="h-3.5 w-3.5" />
+                Filtrar
+            </button>
+
+            @if (request()->hasAny(['estado', 'tipo', 'fecha_inicio']))
+                <a href="{{ route('eventos.index') }}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-danger hover:text-danger/80 focus:outline-none transition">
+                    <x-heroicon-o-x-mark class="h-3.5 w-3.5" />
+                    Limpiar
+                </a>
+            @endif
+        </div>
+    </form>
+
     {{-- Tabla --}}
     <x-table>
         <thead class="bg-gray-50">
             <tr>
                 <x-table-header>Evento</x-table-header>
+                <x-table-header>Tipo</x-table-header>
                 <x-table-header>Institución</x-table-header>
                 <x-table-header>Organizador</x-table-header>
                 <x-table-header>Estado</x-table-header>
@@ -48,7 +101,7 @@
                     @click="if (!$event.target.closest('a, button')) window.location.href = url"
                     style="cursor: pointer"
                 >
-                    {{-- Nombre + tipo --}}
+                    {{-- Nombre --}}
                     <x-table-cell>
                         <div class="flex items-center gap-3">
                             <div class="h-8 w-8 flex-shrink-0 rounded-md bg-primary/10 flex items-center justify-center">
@@ -59,9 +112,13 @@
                                    class="font-medium text-gray-900 hover:text-primary transition-colors">
                                     {{ $evento->nombre }}
                                 </a>
-                                <p class="text-xs text-gray-400 mt-0.5 truncate">{{ $evento->eventoTipo->nombre }}</p>
                             </div>
                         </div>
+                    </x-table-cell>
+
+                    {{-- Tipo --}}
+                    <x-table-cell>
+                        <span class="text-sm text-gray-700">{{ $evento->eventoTipo->nombre }}</span>
                     </x-table-cell>
 
                     {{-- Institución --}}
@@ -83,9 +140,24 @@
                         @endif
                     </x-table-cell>
 
-                    {{-- Fechas --}}
+                    {{-- Fechas (inicio – fin) --}}
                     <x-table-cell>
-                        <x-badge color="primary">{{ $evento->fechas_count }}</x-badge>
+                        @php
+                            $primeraFecha = $evento->fechas->sortBy('fecha')->first();
+                            $ultimaFecha = $evento->fechas->sortByDesc('fecha')->first();
+                        @endphp
+                        @if ($primeraFecha)
+                            <div class="text-sm text-gray-700">
+                                {{ $primeraFecha->fecha->translatedFormat('d M Y') }}
+                            </div>
+                            @if ($ultimaFecha && $primeraFecha->fecha->ne($ultimaFecha->fecha))
+                                <div class="text-xs text-gray-400 mt-0.5">
+                                    — {{ $ultimaFecha->fecha->translatedFormat('d M Y') }}
+                                </div>
+                            @endif
+                        @else
+                            <span class="text-xs text-gray-400">Sin fechas</span>
+                        @endif
                     </x-table-cell>
 
                     {{-- Acciones --}}
@@ -119,7 +191,7 @@
                 @endcan
             @empty
                 <x-table-row>
-                    <td colspan="6" class="px-4 py-12 text-center">
+                    <td colspan="7" class="px-4 py-12 text-center">
                         <x-heroicon-o-calendar-days class="mx-auto h-10 w-10 text-gray-300" />
                         <p class="mt-2 text-sm font-medium text-gray-700">No hay eventos registrados</p>
                         <p class="mt-1 text-xs text-gray-400">Crea el primer evento con el botón de arriba.</p>

@@ -21,10 +21,7 @@
             {{-- Header minimal --}}
             <header class="flex h-14 items-center justify-between border-b border-gray-200/80 bg-white/95 backdrop-blur-sm px-4 sm:px-6 flex-shrink-0">
                 {{-- Logo + nombre --}}
-                <a href="{{ route('calendario.publico') }}" class="flex items-center gap-3">
-                    <img src="{{ asset('images/escudo-udg.svg') }}" alt="Escudo UDG" class="h-8 w-auto">
-                    <span class="text-sm font-semibold text-gray-900">Agenda CUCSH</span>
-                </a>
+                <x-logo-cucsh />
 
                 {{-- Link iniciar sesion --}}
                 <a href="{{ route('login') }}"

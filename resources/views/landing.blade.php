@@ -208,12 +208,6 @@
                             Ver calendario
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0V15"/></svg>
                         </a>
-                        {{-- CTA secundario --}}
-                        <a href="{{ route('login') }}"
-                           class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-600 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 hover:border-gray-300 hover:text-gray-900 transition-all">
-                            <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
-                            Acceso administrativo
-                        </a>
                     </div>
 
                     {{-- Mockup del calendario
@@ -331,13 +325,7 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                         {{-- Logo y creditos --}}
-                        <div class="flex items-center gap-3">
-                            <img src="{{ asset('images/escudo-udg.svg') }}" alt="Escudo UDG" class="h-7 w-auto opacity-60">
-                            <div>
-                                <p class="text-xs font-semibold text-gray-500">Universidad de Guadalajara</p>
-                                <p class="text-xs text-gray-400">Centro Universitario de Ciencias Sociales y Humanidades</p>
-                            </div>
-                        </div>
+                        <x-logo-cucsh size="sm" class="opacity-60" />
                         {{-- Copyright --}}
                         <p class="text-xs text-gray-400">
                             &copy; {{ date('Y') }} CUCSH &mdash; Universidad de Guadalajara
