@@ -13,19 +13,19 @@
             <h1 class="text-lg font-bold text-gray-900">Calendario de Eventos</h1>
         </div>
 
-        {{-- Tabs de filtro (estilo referencia Nivel 2) --}}
-        <div class="flex flex-wrap items-center gap-2 flex-shrink-0 mb-3 mt-1">
+        {{-- Filtros (estilo consistente con index de eventos) --}}
+        <div class="flex flex-wrap items-end gap-3 flex-shrink-0 mb-3 mt-1">
 
-            {{-- Tab: Institucion (dropdown) --}}
+            {{-- Filtro: Institución (dropdown) --}}
             <div class="relative" x-cloak>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Institución</label>
                 <button type="button"
-                        class="cal-filter-pill inline-flex items-center gap-1"
-                        :class="activeFilter === 'institucion' ? 'cal-filter-pill--active' : 'cal-filter-pill--inactive'"
+                        class="inline-flex items-center justify-between gap-2 w-full min-w-[10rem] rounded-md border shadow-sm text-sm px-3 py-[7px] transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                        :class="institucionId ? 'border-udg-gold bg-white text-gray-900' : 'border-gray-300 bg-white text-gray-700'"
                         @click="institucionOpen = !institucionOpen"
                 >
-                    <span x-text="institucionNombre ? ('Institucion: ' + institucionNombre) : 'Institucion'"></span>
-                    {{-- Chevron --}}
-                    <svg class="w-3.5 h-3.5 opacity-60 transition-transform" :class="institucionOpen && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                    <span class="truncate" x-text="institucionNombre || 'Todas'"></span>
+                    <svg class="w-3.5 h-3.5 opacity-50 flex-shrink-0 transition-transform" :class="institucionOpen && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                 </button>
 
                 {{-- Dropdown de instituciones --}}
@@ -39,7 +39,6 @@
                      @click.outside="institucionOpen = false"
                      class="absolute left-0 top-full mt-1 z-50 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
                 >
-                    {{-- Opcion: Todas --}}
                     <button type="button"
                             class="w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors"
                             :class="!institucionId && 'font-semibold text-udg-blue'"
@@ -60,15 +59,16 @@
                 </div>
             </div>
 
-            {{-- Tab: Administraciones (dropdown checklist) --}}
+            {{-- Filtro: Administraciones (dropdown checklist) --}}
             <div class="relative" x-cloak>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Administración</label>
                 <button type="button"
-                        class="cal-filter-pill inline-flex items-center gap-1"
-                        :class="adminFilterActive ? 'cal-filter-pill--active' : 'cal-filter-pill--inactive'"
+                        class="inline-flex items-center justify-between gap-2 w-full min-w-[12rem] rounded-md border shadow-sm text-sm px-3 py-[7px] transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                        :class="adminFilterActive ? 'border-udg-gold bg-white text-gray-900' : 'border-gray-300 bg-white text-gray-700'"
                         @click="adminsOpen = !adminsOpen"
                 >
-                    <span x-text="adminFilterLabel"></span>
-                    <svg class="w-3.5 h-3.5 opacity-60 transition-transform" :class="adminsOpen && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+                    <span class="truncate" x-text="adminFilterLabel"></span>
+                    <svg class="w-3.5 h-3.5 opacity-50 flex-shrink-0 transition-transform" :class="adminsOpen && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
                 </button>
 
                 {{-- Dropdown checklist --}}
@@ -82,7 +82,6 @@
                      @click.outside="adminsOpen = false"
                      class="absolute left-0 top-full mt-1 z-50 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 px-3"
                 >
-                    {{-- Checkbox: Todas --}}
                     <label class="flex items-center gap-2 py-1.5 cursor-pointer">
                         <input type="checkbox"
                                :checked="allAdminsSelected"
@@ -113,16 +112,18 @@
             </div>
 
             {{-- Botón: Limpiar filtros --}}
-            <button type="button"
-                    title="Limpiar filtros"
-                    class="cal-filter-pill inline-flex items-center gap-1.5"
-                    :class="(activeFilter === 'todos' && !adminFilterActive) ? 'cal-filter-pill--inactive opacity-50 cursor-default' : 'cal-filter-pill--active'"
-                    :disabled="activeFilter === 'todos' && !adminFilterActive"
-                    @click="setFilter('todos')"
-            >
-                <x-heroicon-o-funnel class="w-4 h-4" />
-                <span>Limpiar</span>
-            </button>
+            <div class="flex items-center self-center ml-1 pl-3 border-l border-gray-200">
+                <button type="button"
+                        title="Limpiar filtros"
+                        class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider transition"
+                        :class="(activeFilter === 'todos' && !adminFilterActive) ? 'text-gray-300 cursor-default' : 'text-danger hover:text-danger/80'"
+                        :disabled="activeFilter === 'todos' && !adminFilterActive"
+                        @click="setFilter('todos')"
+                >
+                    <x-heroicon-o-x-mark class="h-3.5 w-3.5" />
+                    Limpiar
+                </button>
+            </div>
 
         </div>
 
