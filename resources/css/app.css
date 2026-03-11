@@ -32,40 +32,6 @@
 }
 
 /* =============================================
-   Tabs de filtro — pills estilo referencia
-   ============================================= */
-.cal-filter-pill {
-    font-size: 0.8125rem;
-    line-height: 1;
-    padding: 6px 14px;
-    border-radius: 9999px;
-    font-weight: 500;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    border: 1px solid transparent;
-    outline: none;
-}
-.cal-filter-pill:focus-visible {
-    box-shadow: 0 0 0 2px rgba(96, 135, 210, 0.45);
-}
-.cal-filter-pill--active {
-    background-color: #ffffff;
-    border-color: #d1d5db;
-    color: #111827;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.cal-filter-pill--inactive {
-    background-color: transparent;
-    border-color: transparent;
-    color: #6b7280;
-}
-.cal-filter-pill--inactive:hover {
-    color: #374151;
-    background-color: #f3f4f6;
-}
-
-/* =============================================
    Controles de navegación custom (prev/hoy/next)
    ============================================= */
 .cal-nav-btn {

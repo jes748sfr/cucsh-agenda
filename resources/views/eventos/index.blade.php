@@ -89,7 +89,7 @@
                 <x-table-header>Institución</x-table-header>
                 <x-table-header>Organizador</x-table-header>
                 <x-table-header>Estado</x-table-header>
-                <x-table-header>Fechas</x-table-header>
+                <x-table-header>Fecha Programada</x-table-header>
                 <x-table-header align="right">Acciones</x-table-header>
             </tr>
         </thead>
