@@ -779,6 +779,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var isRefetching = false;
     var previousViewType = null;
 
+    // Tracking de fecha para agrupar visualmente en listWeek
+    // (solo mostrar fecha en el primer evento de cada día)
+    var lastListDate = null;
+
     // Cache de datos crudos de la API (sin agrupar) para re-agrupar
     // al cambiar de vista sin hacer un nuevo fetch HTTP.
     // Elimina la race condition: el regrouping es síncrono desde cache.
@@ -815,6 +819,73 @@ document.addEventListener('DOMContentLoaded', function () {
         // ── Contenido custom para pills en timeGrid ──────────────
         eventContent: function (arg) {
             var viewType = arg.view.type;
+
+            // ── Vista listWeek: layout custom 3 columnas ──
+            if (viewType === 'listWeek') {
+                var ev = arg.event;
+                var props = ev.extendedProps;
+
+                // Determinar si es el primer evento de este día
+                var evDateKey = ev.start ? ev.start.toISOString().substring(0, 10) : '';
+                var showDate = (evDateKey !== lastListDate);
+                lastListDate = evDateKey;
+
+                // Formatear fecha: día abreviado + fecha corta
+                var fmtDiaCorto = new Intl.DateTimeFormat('es-MX', { weekday: 'short' });
+                var fmtFechaCorta = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short' });
+                var diaAbrev = ev.start ? fmtDiaCorto.format(ev.start) : '';
+                var fechaCorta = ev.start ? fmtFechaCorta.format(ev.start) : '';
+
+                // Formatear horario
+                var horaStart = ev.start ? fmtHora.format(ev.start) : '';
+                var horaEnd = ev.end ? fmtHora.format(ev.end) : '';
+                var rangoHorario = horaEnd ? horaStart + ' \u2013 ' + horaEnd : horaStart;
+
+                var html = '<div class="fc-lw-row">';
+
+                // Columna 1: fecha (solo si es primer evento del día)
+                if (showDate) {
+                    html += '<div class="fc-lw-date">'
+                          + '<span class="fc-lw-day">' + escapeHtml(diaAbrev.replace('.', '')) + '</span>'
+                          + '<span class="fc-lw-date-num">' + escapeHtml(fechaCorta) + '</span>'
+                          + '</div>';
+                } else {
+                    html += '<div class="fc-lw-date fc-lw-date--empty"></div>';
+                }
+
+                // Columna 2: horario + ubicación
+                html += '<div class="fc-lw-time">'
+                      + '<span class="fc-lw-time-range">' + escapeHtml(rangoHorario) + '</span>';
+                if (props.ubicacion) {
+                    html += '<span class="fc-lw-location">' + escapeHtml(props.ubicacion) + '</span>';
+                }
+                html += '</div>';
+
+                // Columna 3: tipo + título + detalle (organizador/institución)
+                html += '<div class="fc-lw-info">';
+                if (props.tipo) {
+                    html += '<span class="fc-lw-tipo">' + escapeHtml(props.tipo) + '</span>';
+                }
+                html += '<span class="fc-lw-title">' + escapeHtml(ev.title) + '</span>';
+
+                // Linea de detalle: organizador — institución
+                var detailParts = [];
+                if (props.organizador) detailParts.push(props.organizador);
+                if (props.institucion) detailParts.push(props.institucion);
+                if (detailParts.length > 0) {
+                    html += '<span class="fc-lw-detail">' + escapeHtml(detailParts.join(' \u2014 ')) + '</span>';
+                }
+
+                // Indicador de evento importante
+                if (isImportant(ev)) {
+                    html += '<span class="fc-lw-important">' + iconAlert + '<span>Importante</span></span>';
+                }
+
+                html += '</div>';
+                html += '</div>';
+
+                return { html: html };
+            }
 
             // Solo personalizar pills en vistas timeGrid (semanal y diaria).
             // Retornar `true` indica a FullCalendar que use su renderizado por defecto.
@@ -1044,6 +1115,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // Cerrar popover semanal al cambiar de vista o navegar
             closeWeekPopover();
 
+            // Reset tracking de fecha para listWeek al navegar/cambiar vista
+            lastListDate = null;
+
             // ── Refetch al cambiar a/desde vistas con agrupamiento ────
             // La funcion events() agrupa solapamientos en timeGridDay y
             // timeGridWeek. FullCalendar cachea los eventos y no re-ejecuta
@@ -1100,7 +1174,20 @@ document.addEventListener('DOMContentLoaded', function () {
             el.style.setProperty('--pill-color', pillColor);
             el.style.setProperty('--pill-rgb', r + ', ' + g + ', ' + b);
 
-            // Estilos inline comunes a todas las vistas
+            // ── Vista listWeek: estilo diferenciado (fondo blanco, borde en columna fecha) ──
+            if (info.view.type === 'listWeek') {
+                el.style.backgroundColor = 'transparent';
+                el.style.border = 'none';
+                el.style.color = '#1f2937';
+                // Pasar color del evento a la columna de fecha via CSS custom property
+                var dateCol = el.querySelector('.fc-lw-date:not(.fc-lw-date--empty)');
+                if (dateCol) {
+                    dateCol.style.borderLeftColor = pillColor;
+                }
+                return; // No aplicar estilos de pill ni dot — listWeek tiene su propio layout
+            }
+
+            // Estilos inline comunes a las demas vistas
             el.style.backgroundColor = 'rgba(' + r + ', ' + g + ', ' + b + ', 0.18)';
             el.style.borderLeft = '3px solid ' + pillColor;
             el.style.borderRight = 'none';

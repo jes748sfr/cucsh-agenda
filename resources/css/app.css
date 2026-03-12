@@ -371,11 +371,194 @@
     padding-top: 4px;
 }
 
-/* Vista list (agenda) — sin borde izquierdo especial */
-.fc .fc-list-event-dot {
-    border-radius: 0;
-    width: 4px;
-    height: 16px;
+/* =============================================
+   Vista listWeek (agenda) — layout custom 3 columnas
+   Prefijo modular: .fc-lw-*
+   Referencia: fecha | horario+ubicación | info evento
+   ============================================= */
+
+/* ── Ocultar elementos nativos de FC en listWeek ── */
+/* Usamos eventContent custom, no necesitamos dot/time/title nativos */
+.fc-listWeek-view .fc-list-event-dot {
+    display: none;
+}
+.fc-listWeek-view .fc-list-event-time {
+    display: none;
+}
+.fc-listWeek-view .fc-list-event-title {
+    padding: 0;
+}
+
+/* Quitar estilo de tabla nativo — filas sin borde interno de FC */
+.fc-listWeek-view .fc-list-event {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.fc-listWeek-view .fc-list-event:hover {
+    background-color: #f9fafb;
+}
+.fc-listWeek-view .fc-list-event > td {
+    border: none;
+    padding: 0;
+}
+
+/* ── Headers de día — estilizar como separadores sutiles ── */
+.fc-listWeek-view .fc-list-day-cushion {
+    background-color: #f8f9fa;
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.fc-listWeek-view .fc-list-day-text,
+.fc-listWeek-view .fc-list-day-side-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #202945;
+    text-transform: capitalize;
+}
+
+/* ── Row custom: grid de 3 columnas ── */
+.fc-lw-row {
+    display: grid;
+    grid-template-columns: 100px 240px 1fr;
+    align-items: start;
+    column-gap: 16px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+    min-height: 64px;
+}
+
+/* ── Columna 1: fecha (día abreviado + número) ── */
+.fc-lw-date {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 12px;
+    border-left: 3px solid #202945;
+    line-height: 1;
+    gap: 2px;
+}
+/* Cuando la fecha se repite (mismo día), ocultar contenido pero mantener borde */
+.fc-lw-date--empty {
+    border-left-color: transparent;
+}
+.fc-lw-day {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #202945;
+    text-transform: capitalize;
+    line-height: 1.2;
+}
+.fc-lw-date-num {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #6b7280;
+    line-height: 1.2;
+}
+
+/* ── Columna 2: horario + ubicación ── */
+.fc-lw-time {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 0 16px;
+}
+.fc-lw-time-range {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+.fc-lw-location {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #9ca3af;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Columna 3: info del evento ── */
+.fc-lw-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 16px;
+    border-left: 1px solid #e5e7eb;
+    min-width: 0;
+}
+.fc-lw-tipo {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.3;
+}
+.fc-lw-title {
+    font-size: 0.925rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.fc-lw-detail {
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #6b7280;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Indicador de evento importante en listWeek ── */
+.fc-lw-important {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #FF6868;
+    margin-top: 6px;
+    padding-top: 6px;
+    line-height: 1.2;
+}
+.fc-lw-important svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+/* ── Responsive: colapsar a 2 columnas en pantallas pequeñas ── */
+@media (max-width: 640px) {
+    .fc-lw-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 12px 14px;
+    }
+    .fc-lw-date {
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        border-left: 3px solid #202945;
+    }
+    .fc-lw-date--empty {
+        display: none;
+    }
+    .fc-lw-time {
+        padding: 0 0 0 12px;
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+    }
+    .fc-lw-info {
+        border-left: none;
+        padding-left: 12px;
+    }
 }
 
 /* =============================================
