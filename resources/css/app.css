@@ -402,18 +402,60 @@
     padding: 0;
 }
 
-/* ── Headers de día — estilizar como separadores sutiles ── */
-.fc-listWeek-view .fc-list-day-cushion {
-    background-color: #f8f9fa;
-    padding: 10px 16px;
-    border-bottom: 1px solid #e5e7eb;
+/* ── Headers de día nativos — ocultos (la fecha se muestra en .fc-lw-date) ── */
+.fc-listWeek-view .fc-list-day {
+    display: none;
 }
-.fc-listWeek-view .fc-list-day-text,
-.fc-listWeek-view .fc-list-day-side-text {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #202945;
-    text-transform: capitalize;
+
+/* ── Tooltip de fecha en filas con .fc-lw-date--empty (hover con delay) ── */
+.fc-listWeek-view .fc-list-event {
+    position: relative;
+}
+.fc-lw-row[data-fc-lw-fecha]::after {
+    content: attr(data-fc-lw-fecha);
+    position: absolute;
+    left: 16px;
+    top: -6px;
+    transform: translateY(-100%);
+    background: #202945;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+    /* Oculto por defecto, aparece tras 1.5s de hover */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease 1.5s, visibility 0.18s ease 1.5s;
+}
+/* Flecha inferior del tooltip */
+.fc-lw-row[data-fc-lw-fecha]::before {
+    content: '';
+    position: absolute;
+    left: 32px;
+    top: -6px;
+    transform: translateY(-100%);
+    border: 5px solid transparent;
+    border-top-color: #202945;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease 1.5s, visibility 0.18s ease 1.5s;
+}
+/* Mostrar solo en filas con fecha vacía (las que necesitan orientación) */
+.fc-lw-row[data-fc-lw-fecha]:hover::after,
+.fc-lw-row[data-fc-lw-fecha]:hover::before {
+    opacity: 1;
+    visibility: visible;
+}
+/* Desaparecer inmediatamente al salir (sin delay de salida) */
+.fc-lw-row[data-fc-lw-fecha]:not(:hover)::after,
+.fc-lw-row[data-fc-lw-fecha]:not(:hover)::before {
+    transition-delay: 0s;
 }
 
 /* ── Row custom: grid de 3 columnas ── */
@@ -425,6 +467,10 @@
     padding: 14px 16px;
     border-bottom: 1px solid #f3f4f6;
     min-height: 64px;
+}
+/* Separador entre grupos de día — ligeramente más visible que el interno */
+.fc-lw-row--last-of-day {
+    border-bottom-color: #d1d5db;
 }
 
 /* ── Columna 1: fecha (día abreviado + número) ── */

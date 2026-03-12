@@ -783,6 +783,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // (solo mostrar fecha en el primer evento de cada día)
     var lastListDate = null;
 
+    // Referencia al último .fc-lw-row procesado y su fecha (para marcar último del día)
+    var lastLwRow = null;
+    var lastLwRowDate = null;
+
     // Cache de datos crudos de la API (sin agrupar) para re-agrupar
     // al cambiar de vista sin hacer un nuevo fetch HTTP.
     // Elimina la race condition: el regrouping es síncrono desde cache.
@@ -1117,6 +1121,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Reset tracking de fecha para listWeek al navegar/cambiar vista
             lastListDate = null;
+            lastLwRow = null;
+            lastLwRowDate = null;
 
             // ── Refetch al cambiar a/desde vistas con agrupamiento ────
             // La funcion events() agrupa solapamientos en timeGridDay y
@@ -1184,6 +1190,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (dateCol) {
                     dateCol.style.borderLeftColor = pillColor;
                 }
+
+                // Tooltip CSS de orientación: solo en filas sin fecha visible (.fc-lw-date--empty).
+                // Formatear fecha completa (ej: "miércoles 12 de marzo de 2026") para el tooltip.
+                var emptyDateCol = el.querySelector('.fc-lw-date--empty');
+                if (emptyDateCol && info.event.start) {
+                    var fmtCompleta = new Intl.DateTimeFormat('es-MX', {
+                        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                    });
+                    var lwRow = el.querySelector('.fc-lw-row');
+                    if (lwRow) {
+                        lwRow.setAttribute('data-fc-lw-fecha', fmtCompleta.format(info.event.start));
+                    }
+                }
+
+                // ── Marcar última fila de cada día con .fc-lw-row--last-of-day ──
+                var currentLwRow = el.querySelector('.fc-lw-row');
+                var currentDate = info.event.start ? info.event.start.toISOString().substring(0, 10) : '';
+
+                // Si el día cambió, marcar la fila anterior como última de su día
+                if (lastLwRow && lastLwRowDate && currentDate !== lastLwRowDate) {
+                    lastLwRow.classList.add('fc-lw-row--last-of-day');
+                }
+
+                // Actualizar referencias para la siguiente iteración
+                lastLwRow = currentLwRow;
+                lastLwRowDate = currentDate;
+
+                // Para el último evento absoluto de la semana: usar microtask
+                // para marcar después de que FC termine de montar todos los eventos
+                clearTimeout(lastLwRow._fcLastDayTimer);
+                currentLwRow._fcLastDayTimer = setTimeout(function () {
+                    if (lastLwRow) {
+                        lastLwRow.classList.add('fc-lw-row--last-of-day');
+                    }
+                }, 0);
+
                 return; // No aplicar estilos de pill ni dot — listWeek tiene su propio layout
             }
 
