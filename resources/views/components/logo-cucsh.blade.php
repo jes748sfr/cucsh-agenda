@@ -4,30 +4,23 @@
 ])
 
 @php
-    $imgSizes = [
-        'sm' => 'h-7',
-        'default' => 'h-9',
-        'lg' => 'h-11',
-        'xl' => 'h-14',
+    $sizes = [
+        'sm'      => ['box' => 'w-7 h-7',   'radius' => 'rounded',    'title' => 'text-xs',   'sub' => 'text-[0.6rem]'],
+        'default' => ['box' => 'w-9 h-9',   'radius' => 'rounded-md', 'title' => 'text-sm',   'sub' => 'text-[0.65rem]'],
+        'lg'      => ['box' => 'w-11 h-11', 'radius' => 'rounded-lg', 'title' => 'text-sm',   'sub' => 'text-[0.65rem]'],
+        'xl'      => ['box' => 'w-14 h-14', 'radius' => 'rounded-xl', 'title' => 'text-base', 'sub' => 'text-xs'],
     ];
-    $imgClass = $imgSizes[$size] ?? $imgSizes['default'];
-    $imgFile = 'escudo-udg.png';
-
-    $textSizes = [
-        'sm' => ['title' => 'text-xs', 'sub' => 'text-[0.6rem]'],
-        'default' => ['title' => 'text-sm', 'sub' => 'text-[0.65rem]'],
-        'lg' => ['title' => 'text-sm', 'sub' => 'text-[0.65rem]'],
-        'xl' => ['title' => 'text-base', 'sub' => 'text-xs'],
-    ];
-    $txtClass = $textSizes[$size] ?? $textSizes['default'];
+    $s = $sizes[$size] ?? $sizes['default'];
 @endphp
 
 <a href="{{ url('/') }}" {{ $attributes->merge(['class' => 'flex items-center gap-3 flex-shrink-0']) }}>
-    <img src="{{ asset('images/' . $imgFile) }}" alt="Escudo UDG" class="{{ $imgClass }} w-auto">
+    <span class="{{ $s['box'] }} {{ $s['radius'] }} overflow-hidden flex-shrink-0">
+        <img src="{{ asset('images/escudo-cucsh.png') }}" alt="CUCSH" class="w-full h-full object-cover">
+    </span>
     @if($showText)
         <div class="hidden sm:block">
-            <span class="{{ $txtClass['title'] }} font-bold text-udg-blue leading-none">Agenda CUCSH</span>
-            <span class="block {{ $txtClass['sub'] }} text-gray-500 leading-tight">Universidad de Guadalajara</span>
+            <span class="{{ $s['title'] }} font-bold text-udg-blue leading-none">Agenda CUCSH</span>
+            <span class="block {{ $s['sub'] }} text-gray-500 leading-tight">Universidad de Guadalajara</span>
         </div>
     @endif
 </a>

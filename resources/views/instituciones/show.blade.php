@@ -1,13 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('instituciones.index') }}"
-               class="text-gray-400 hover:text-gray-600 transition"
-               title="Volver al listado">
-                <x-heroicon-o-arrow-left class="h-5 w-5" />
-            </a>
-            <h2 class="text-lg font-semibold text-gray-900">{{ $institucion->nombre }}</h2>
-        </div>
+        <x-breadcrumb :items="[
+            ['label' => 'Instituciones', 'url' => route('instituciones.index')],
+            ['label' => $institucion->nombre],
+        ]" />
     </x-slot>
 
     <div class="max-w-3xl"

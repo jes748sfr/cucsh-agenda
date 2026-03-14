@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!window.__calendarPublicMode) {
             var eventoId = props.evento_id;
             html += '<div class="fc-wpop-footer">';
-            html += '<a href="/eventos/' + eventoId + '" class="fc-wpop-link">';
+            html += '<a href="' + buildEventoShowUrl(eventoId) + '" class="fc-wpop-link">';
             html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
             html += '<span>Ver evento completo</span>';
             html += '</a>';
@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // Link a vista completa (solo modo autenticado)
             if (!window.__calendarPublicMode && rawProps.evento_id) {
                 html += '<div class="fc-wpop-accordion-link">';
-                html += '<a href="/eventos/' + rawProps.evento_id + '" class="fc-wpop-link">';
+                html += '<a href="' + buildEventoShowUrl(rawProps.evento_id) + '" class="fc-wpop-link">';
                 html += '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px;flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>';
                 html += '<span>Ver evento</span>';
                 html += '</a>';
@@ -799,6 +799,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const vistaParam = urlParams.get('vista');
     const initialViewFromUrl = vistaValidas.includes(vistaParam) ? vistaParam : 'dayGridMonth';
     const fechaParam = urlParams.get('fecha');
+
+    /**
+     * Construye la URL al show de un evento, incluyendo parámetros de retorno
+     * (vista actual y fecha) para que el botón "Volver" regrese al dashboard
+     * en la misma vista y fecha.
+     * @param {number|string} eventoId - ID del evento
+     * @returns {string} URL con query params de retorno
+     */
+    function buildEventoShowUrl(eventoId) {
+        var vista = calendar ? calendar.view.type : initialViewFromUrl;
+        var fecha = calendar ? calendar.view.currentStart.toISOString().substring(0, 10) : (fechaParam || '');
+        return '/eventos/' + eventoId + '?from=dashboard&vista=' + vista + '&fecha=' + fecha;
+    }
 
     const calendar = new Calendar(calendarEl, {
         plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
@@ -1404,7 +1417,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }));
             } else if (!window.__calendarPublicMode) {
-                window.location.href = '/eventos/' + eventoId;
+                window.location.href = buildEventoShowUrl(eventoId);
             }
         },
     });
@@ -1412,6 +1425,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Inicializar previousViewType con la vista inicial para que el primer
     // datesSet no dispare un refetch innecesario
     previousViewType = initialViewFromUrl;
+
+    // Exponer helper para construir URL de evento con parámetros de retorno
+    // (usado por el panel lateral Alpine en calendar-event-panel.blade.php)
+    window.__buildEventoShowUrl = buildEventoShowUrl;
 
     calendar.render();
 

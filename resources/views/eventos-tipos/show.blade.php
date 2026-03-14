@@ -1,13 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('eventos-tipos.index') }}"
-               class="text-gray-400 hover:text-gray-600 transition"
-               title="Volver al listado">
-                <x-heroicon-o-arrow-left class="h-5 w-5" />
-            </a>
-            <h2 class="text-lg font-semibold text-gray-900">{{ $eventoTipo->nombre }}</h2>
-        </div>
+        <x-breadcrumb :items="[
+            ['label' => 'Tipos de Evento', 'url' => route('eventos-tipos.index')],
+            ['label' => $eventoTipo->nombre],
+        ]" />
     </x-slot>
 
     <div class="max-w-3xl"

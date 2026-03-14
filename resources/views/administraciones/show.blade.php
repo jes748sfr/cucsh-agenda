@@ -1,12 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('administraciones.index') }}"
-               class="text-gray-400 hover:text-gray-600 transition"
-               title="Volver al listado">
-                <x-heroicon-o-arrow-left class="h-5 w-5" />
-            </a>
-            <h2 class="text-lg font-semibold text-gray-900">{{ $administracion->nombre }}</h2>
+            <x-breadcrumb :items="[
+                ['label' => 'Administraciones', 'url' => route('administraciones.index')],
+                ['label' => $administracion->nombre],
+            ]" />
             @if (in_array($administracion->id, [1, 2]))
                 <x-badge color="gray" size="sm">
                     <span class="flex items-center gap-1">

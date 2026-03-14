@@ -97,7 +97,7 @@
         <tbody>
             @forelse ($eventos as $evento)
                 <x-table-row striped
-                    x-data="{ url: '{{ route('eventos.show', $evento) }}' }"
+                    x-data="{ url: '{{ route('eventos.show', $evento) }}?from=index' }"
                     @click="if (!$event.target.closest('a, button')) window.location.href = url"
                     style="cursor: pointer"
                 >
@@ -108,7 +108,7 @@
                                 <x-heroicon-o-calendar-days class="h-4 w-4 text-primary" />
                             </div>
                             <div class="min-w-0">
-                                <a href="{{ route('eventos.show', $evento) }}"
+                                <a href="{{ route('eventos.show', $evento) }}?from=index"
                                    class="font-medium text-gray-900 hover:text-primary transition-colors">
                                     {{ $evento->nombre }}
                                 </a>

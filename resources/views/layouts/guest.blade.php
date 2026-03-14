@@ -18,26 +18,24 @@
         <div class="min-h-screen flex">
 
             {{-- Panel izquierdo — formulario --}}
-            <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-8 py-12 sm:px-12">
+            <div class="w-full lg:w-1/2 flex items-center justify-center bg-udg-blue/[0.06] px-8 py-12 sm:px-12">
                 <div class="w-full max-w-sm">
                     {{ $slot }}
                 </div>
             </div>
 
             {{-- Panel derecho — imagen decorativa (solo desktop) --}}
-            <div class="hidden lg:block lg:w-1/2 p-4 guest-panel-right">
-                <div class="relative h-full rounded-2xl bg-udg-blue overflow-hidden flex items-center justify-center">
+            <div class="hidden lg:block lg:w-1/2 py-4 pl-4 guest-panel-right">
+                <div class="relative h-full rounded-l-2xl overflow-hidden">
 
-                    {{-- Escudo UDG como placeholder (se reemplazara con foto del campus) --}}
-                    <img src="{{ asset('images/escudo-udg.png') }}"
+                    {{-- Foto del campus CUCSH --}}
+                    <img src="{{ asset('images/login-bg.webp') }}"
                          alt=""
                          aria-hidden="true"
-                         class="w-32 h-auto opacity-15 select-none pointer-events-none">
+                         class="absolute inset-0 w-full h-full object-cover select-none pointer-events-none">
 
-                    {{-- Patron decorativo sutil --}}
-                    <div class="absolute inset-0 opacity-[0.03]"
-                         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 32px 32px;">
-                    </div>
+                    {{-- Overlay oscuro para legibilidad del texto --}}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
 
                     {{-- Overlay glass-morphism con quote institucional --}}
                     <div class="absolute bottom-6 left-6 right-6 backdrop-blur-md bg-white/10 border border-white/20 rounded-xl p-6">

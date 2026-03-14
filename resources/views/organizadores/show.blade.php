@@ -1,14 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3 min-w-0">
-                <a href="{{ route('organizadores.index') }}"
-                   class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
-                   title="Volver al listado">
-                    <x-heroicon-o-arrow-left class="h-5 w-5" />
-                </a>
-                <h2 class="text-lg font-semibold text-gray-900 truncate">{{ $organizador->nombre }}</h2>
-            </div>
+            <x-breadcrumb :items="[
+                ['label' => 'Organizadores', 'url' => route('organizadores.index')],
+                ['label' => $organizador->nombre],
+            ]" />
 
             <div class="flex items-center gap-2 ml-4 flex-shrink-0">
                 @can('organizadores.editar')

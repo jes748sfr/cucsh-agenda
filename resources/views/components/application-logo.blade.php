@@ -1,6 +1,6 @@
 <div {{ $attributes->merge(['class' => 'inline-flex items-center gap-x-3']) }}>
     {{-- Logo --}}
-    <img src="{{ asset('images/escudo-udg.png') }}"
+    <img src="{{ asset('images/escudo-cucsh.png') }}"
          alt="Escudo Universidad de Guadalajara"
          class="h-12 w-auto flex-shrink-0">
 

@@ -19,39 +19,23 @@
                Landing page — estilos específicos
                ============================================= */
 
-            /* Fondo decorativo del hero — gradiente suave que evoca cielo */
+            /* Fondo del hero — imagen de fondo visible completa */
             .landing-hero-bg {
-                background: linear-gradient(180deg, #f0f4f8 0%, #dce6f0 40%, #c8d8e8 70%, #b8c8d8 100%);
                 position: relative;
                 overflow: hidden;
             }
 
-            /* Contenedor de imagen de fondo (skyline/cityscape) */
+            /* Contenedor de imagen de fondo */
             .landing-bg-image {
                 position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 50%;
+                inset: 0;
                 background-image: url('{{ asset('images/landing-bg.webp') }}');
                 background-size: cover;
-                background-position: bottom center;
+                background-position: center center;
                 background-repeat: no-repeat;
                 opacity: 0.35;
                 pointer-events: none;
             }
-
-            /* Nubes decorativas — círculos difusos flotantes */
-            .landing-cloud {
-                position: absolute;
-                border-radius: 9999px;
-                background: rgba(255, 255, 255, 0.7);
-                filter: blur(30px);
-                pointer-events: none;
-            }
-            .landing-cloud-1 { width: 300px; height: 80px; top: 20%; left: 5%; }
-            .landing-cloud-2 { width: 200px; height: 60px; top: 15%; right: 10%; }
-            .landing-cloud-3 { width: 250px; height: 70px; top: 35%; left: 60%; }
 
             /* Animación suave de entrada */
             .landing-fade-up {
@@ -166,11 +150,6 @@
                  HERO SECTION
                  ============================================ --}}
             <section id="inicio" class="landing-hero-bg flex-1 flex flex-col">
-                {{-- Nubes decorativas --}}
-                <div class="landing-cloud landing-cloud-1"></div>
-                <div class="landing-cloud landing-cloud-2"></div>
-                <div class="landing-cloud landing-cloud-3"></div>
-
                 {{-- Imagen de fondo decorativa (skyline/cityscape)
                      OPCIONAL - PARA MODIFICACIÓN POSTERIOR
                      ================================================
@@ -178,17 +157,12 @@
                      Dimensiones recomendadas: 1920x600px o superior
                      Formato: WebP (preferido) o PNG con transparencia
                      Contenido: skyline, cityscape estilizado, o ilustracion arquitectonica
-                     La imagen se mostrara en la mitad inferior del hero con opacidad 35%
+                     La imagen cubre todo el hero desde la zona superior con opacidad 35%
                      ================================================ --}}
                 <div class="landing-bg-image"></div>
 
                 {{-- Contenido del hero --}}
                 <div class="relative z-10 flex-1 flex flex-col items-center justify-start pt-12 sm:pt-16 lg:pt-20 px-4 sm:px-6">
-
-                    {{-- Subtitulo institucional --}}
-                    <p class="landing-fade-up text-xs sm:text-base font-medium text-gray-500 tracking-wide text-center">
-                        Centro Universitario de Ciencias Sociales y Humanidades
-                    </p>
 
                     {{-- Titulo principal --}}
                     <h1 class="landing-fade-up landing-fade-up-delay-1 mt-4 sm:mt-5 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-udg-blue text-center leading-tight tracking-tight max-w-4xl">
@@ -232,7 +206,7 @@
             </section>
 
             {{-- ============================================
-                 FEATURES SECTION
+                 Seccion de funciones
                  ============================================ --}}
             <section id="funciones" class="relative z-10 bg-white py-16 sm:py-20 lg:py-24">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -300,7 +274,7 @@
             </section>
 
             {{-- ============================================
-                 CTA SECTION (banda final)
+                 Banda final
                  ============================================ --}}
             <section class="bg-udg-blue py-14 sm:py-16">
                 <div class="max-w-3xl mx-auto px-4 sm:px-6 text-center">
@@ -319,7 +293,7 @@
             </section>
 
             {{-- ============================================
-                 FOOTER
+                 Footer
                  ============================================ --}}
             <footer class="bg-gray-50 border-t border-gray-100 py-8 sm:py-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,25 +1,30 @@
 @php
-    $back      = url()->previous();
-    $indexPath = rtrim(parse_url(route('eventos.index'), PHP_URL_PATH), '/');
-    $backPath  = rtrim(parse_url($back, PHP_URL_PATH), '/');
-    // Si viene del index de eventos o del dashboard → volver a esa página
-    // Cualquier otra página → volver al index de eventos
-    $backUrl = ($backPath === $indexPath || $backPath === rtrim(parse_url(route('dashboard'), PHP_URL_PATH), '/'))
-        ? $back
-        : route('eventos.index');
+    // Construir breadcrumb dinámico según el origen de navegación
+    if (request('from') === 'dashboard') {
+        $params = [];
+        if (request('vista')) {
+            $params['vista'] = request('vista');
+        }
+        if (request('fecha')) {
+            $params['fecha'] = request('fecha');
+        }
+        $breadcrumbItems = [
+            ['label' => 'Panel', 'url' => route('dashboard', $params)],
+            ['label' => $evento->nombre],
+        ];
+    } else {
+        // Fallback: siempre apunta al índice de eventos
+        $breadcrumbItems = [
+            ['label' => 'Eventos', 'url' => route('eventos.index')],
+            ['label' => $evento->nombre],
+        ];
+    }
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3 min-w-0">
-                <a href="{{ $backUrl }}"
-                   class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
-                   title="Volver">
-                    <x-heroicon-o-arrow-left class="h-5 w-5" />
-                </a>
-                <h2 class="text-lg font-semibold text-gray-900 truncate">{{ $evento->nombre }}</h2>
-            </div>
+            <x-breadcrumb :items="$breadcrumbItems" />
 
             <div class="flex items-center gap-2 ml-4 flex-shrink-0">
                 @can('update', $evento)

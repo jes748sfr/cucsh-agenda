@@ -21,6 +21,7 @@ export default {
                     blue: '#202945',         // Azul profundo institucional
                     'blue-light': '#2d3a60', // Para estados hover
                     'blue-dark': '#131929',  // Para estados active/focus
+                    'red-dark': '#7c1526',   // Rojo oscuro insititucional
                     red: '#e31837',          // Rojo institucional / Errores
                     gold: '#e8ab16',         // Dorado / Detalles a destacar
                 },

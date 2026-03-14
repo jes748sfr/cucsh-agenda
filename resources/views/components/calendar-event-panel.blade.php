@@ -109,7 +109,7 @@
                 {{-- Pie fijo (solo si showFooter es true) --}}
                 @if($showFooter)
                     <div class="px-5 py-3 border-t border-gray-100 flex-shrink-0">
-                        <a :href="'{{ $eventoBaseUrl }}/' + panelEvento.evento_id"
+                        <a :href="window.__buildEventoShowUrl ? window.__buildEventoShowUrl(panelEvento.evento_id) : ('{{ $eventoBaseUrl }}/' + panelEvento.evento_id)"
                            class="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-medium text-white bg-udg-blue rounded-lg hover:bg-udg-blue/90 transition-colors"
                         >
                             <x-heroicon-o-arrow-top-right-on-square class="w-4 h-4" />
@@ -227,7 +227,7 @@
                             {{-- Link al evento (solo si showFooter es true) --}}
                             @if($showFooter)
                                 <div class="pt-1">
-                                    <a :href="'{{ $eventoBaseUrl }}/' + ev.evento_id"
+                                    <a :href="window.__buildEventoShowUrl ? window.__buildEventoShowUrl(ev.evento_id) : ('{{ $eventoBaseUrl }}/' + ev.evento_id)"
                                        class="inline-flex items-center gap-1.5 text-xs font-medium text-udg-blue hover:text-udg-blue/80 transition-colors"
                                     >
                                         <x-heroicon-o-arrow-top-right-on-square class="w-3.5 h-3.5" />
