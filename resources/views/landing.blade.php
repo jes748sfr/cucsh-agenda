@@ -7,6 +7,9 @@
         <title>{{ config('app.name', 'Agenda CUCSH') }} - Eventos Academicos</title>
         <meta name="description" content="Consulta los eventos académicos del Centro Universitario de Ciencias Sociales y Humanidades de la Universidad de Guadalajara.">
 
+        <!-- Favicon -->
+        <link rel="icon" href="{{ asset('images/escudo-cucsh.png') }}" type="image/png">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />

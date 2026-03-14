@@ -7,6 +7,9 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- Favicon -->
+        <link rel="icon" href="{{ asset('images/escudo-cucsh.png') }}" type="image/png">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -33,7 +36,7 @@
             <div class="lg:pl-64 flex flex-col h-screen">
 
                 {{-- Top bar --}}
-                <header class="sticky top-0 z-10 flex h-14 items-center gap-4 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm px-4 sm:px-6">
+                <header class="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-gray-200/80 bg-white/95 backdrop-blur-sm px-4 sm:px-6">
                     {{-- Botón menú móvil --}}
                     <button @click="mobileMenu = true"
                             type="button"

@@ -86,6 +86,9 @@
                 institucionId: null,
                 institucionNombre: null,
                 institucionOpen: false,
+                eventoTipoId: null,
+                eventoTipoNombre: null,
+                eventoTipoOpen: false,
                 adminsOpen: false,
 
                 // Estado de administraciones: array de IDs seleccionados
@@ -134,16 +137,27 @@
                     this.refetch();
                 },
 
+                selectEventoTipo(id, nombre) {
+                    this.eventoTipoId = id;
+                    this.eventoTipoNombre = nombre;
+                    this.eventoTipoOpen = false;
+                    this.refetch();
+                },
+
                 setFilter(tipo) {
                     if (tipo === 'todos') {
                         this.activeFilter = 'todos';
                         this.institucionId = null;
                         this.institucionNombre = null;
+                        // Resetear tipo de evento
+                        this.eventoTipoId = null;
+                        this.eventoTipoNombre = null;
                         // Resetear administraciones a todas
                         this.adminSeleccionadas = [...TODOS_ADMIN_IDS];
                         this.adminAplicadas = [...TODOS_ADMIN_IDS];
                     }
                     this.institucionOpen = false;
+                    this.eventoTipoOpen = false;
                     this.adminsOpen = false;
                     this.refetch();
                 },
@@ -171,6 +185,11 @@
                     // Filtro de institucion
                     if (this.activeFilter === 'institucion' && this.institucionId) {
                         params.institucion_id = this.institucionId;
+                    }
+
+                    // Filtro de tipo de evento
+                    if (this.eventoTipoId) {
+                        params.eventos_tipo_id = this.eventoTipoId;
                     }
 
                     // Filtro de administraciones (solo si no son todas)

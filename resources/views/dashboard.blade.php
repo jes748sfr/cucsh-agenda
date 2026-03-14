@@ -14,7 +14,7 @@
         </div>
 
         {{-- Filtros del calendario --}}
-        <x-calendar-filters :instituciones="$instituciones" :administraciones="$administraciones" />
+        <x-calendar-filters :instituciones="$instituciones" :administraciones="$administraciones" :eventos-tipos="$eventosTipos" />
 
         {{-- Contenedor FullCalendar --}}
         <div class="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 p-3 overflow-hidden flex flex-col">
