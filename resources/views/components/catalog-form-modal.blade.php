@@ -20,7 +20,7 @@
 
         {{-- Título dinámico --}}
         <h3 class="text-lg font-semibold text-gray-900"
-            x-text="editing ? 'Editar {{ $entityLabel }}' : 'Nuevo {{ $entityLabel }}'">
+            x-text="editing ? 'Editar {{ $entityLabel }}' : 'Nuevo(a) {{ $entityLabel }}'">
         </h3>
 
         {{-- Campo nombre --}}

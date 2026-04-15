@@ -101,9 +101,9 @@
                             </template>
                         </div>
 
-                        {{-- Institución --}}
+                        {{-- Sede --}}
                         <div class="sm:col-span-3">
-                            <x-input-label for="institucion_id" value="Institución *" />
+                            <x-input-label for="institucion_id" value="Sede *" />
                             <div class="mt-2">
                                 <select
                                     id="institucion_id"
@@ -111,7 +111,7 @@
                                     aria-describedby="institucion-error"
                                     class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                 >
-                                    <option value="">— Seleccionar institución —</option>
+                                    <option value="">— Seleccionar Sede —</option>
                                     @foreach ($instituciones as $inst)
                                         <option value="{{ $inst->id }}"
                                             {{ old('institucion_id', $evento->institucion_id) == $inst->id ? 'selected' : '' }}>

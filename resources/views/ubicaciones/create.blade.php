@@ -47,7 +47,7 @@
 
                         {{-- Institución --}}
                         <div class="sm:col-span-4">
-                            <x-input-label for="institucion_id" value="Institución" />
+                            <x-input-label for="institucion_id" value="Sede" />
                             <div class="mt-2">
                                 <select
                                     id="institucion_id"

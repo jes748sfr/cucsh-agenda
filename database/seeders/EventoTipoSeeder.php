@@ -16,13 +16,13 @@ class EventoTipoSeeder extends Seeder
             'Congreso',
             'Coloquio',
             'Foro',
-            'Simposio',
+            'Simposío',
             'Curso',
             'Diplomado',
             'Ceremonia',
-            'Reunion',
-            'Exposicion',
-            'Presentacion de libro',
+            'Reunión',
+            'Exposición',
+            'Presentación de libro',
             'Examen profesional',
         ];
 

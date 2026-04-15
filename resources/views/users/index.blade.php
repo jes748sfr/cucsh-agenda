@@ -5,7 +5,7 @@
 
     {{-- Cabecera en el área de contenido --}}
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Gestión de Usuarios</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Gestión de usuarios</h1>
         <p class="text-sm text-gray-500 mt-1">Administra los miembros del equipo y sus permisos de acceso.</p>
     </div>
 

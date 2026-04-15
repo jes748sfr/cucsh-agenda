@@ -169,12 +169,12 @@
 
                     {{-- Titulo principal --}}
                     <h1 class="landing-fade-up landing-fade-up-delay-1 mt-4 sm:mt-5 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-udg-blue text-center leading-tight tracking-tight max-w-4xl">
-                        Tu agenda académica,<br class="hidden sm:inline"> siempre disponible
+                        Tu agenda académica,<br class="hidden sm:inline"> Siempre disponible
                     </h1>
 
                     {{-- Descripcion --}}
                     <p class="landing-fade-up landing-fade-up-delay-2 mt-5 sm:mt-6 text-base sm:text-lg text-gray-600 text-center max-w-xl leading-relaxed">
-                        Consulta conferencias, talleres y eventos de tu universidad de Guadalajara CUCSH.
+                        Consulta conferencias, talleres y eventos de tu Universidad de Guadalajara CUCSH.
                     </p>
 
                     {{-- Botones CTA --}}
@@ -218,7 +218,7 @@
                     <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
                         <p class="text-sm font-semibold text-udg-gold uppercase tracking-wider">Funciones</p>
                         <h2 class="mt-2 text-2xl sm:text-3xl lg:text-4xl font-bold text-udg-blue leading-tight">
-                            Todo lo que necesitas para estar al dia
+                            Todo lo que necesitas para estar al día
                         </h2>
                         <p class="mt-4 text-base text-gray-500 leading-relaxed">
                             Accede a la agenda académica del CUCSH de forma rápida y sencilla, sin necesidad de crear una cuenta.
@@ -244,7 +244,7 @@
                             <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-udg-blue/10 text-udg-blue mb-4">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
                             </div>
-                            <h3 class="text-base font-bold text-gray-900 mb-1.5">Multiples vistas</h3>
+                            <h3 class="text-base font-bold text-gray-900 mb-1.5">Múltiples vistas</h3>
                             <p class="text-sm text-gray-500 leading-relaxed">
                                 Vista mensual, semanal, diaria y agenda. Elige la que mejor se adapte a ti.
                             </p>
@@ -268,7 +268,7 @@
                             </div>
                             <h3 class="text-base font-bold text-gray-900 mb-1.5">Siempre actualizado</h3>
                             <p class="text-sm text-gray-500 leading-relaxed">
-                                Los eventos se actualizan en tiempo real. Información confiable y al dia.
+                                Los eventos se actualizan en tiempo real. Información confiable y al día.
                             </p>
                         </div>
 
@@ -285,7 +285,7 @@
                         Explora los eventos del CUCSH
                     </h2>
                     <p class="mt-3 text-base text-white/70 leading-relaxed max-w-lg mx-auto">
-                        Conferencias, talleres, seminarios y mas. Todo en un solo lugar.
+                        Conferencias, talleres, seminarios y más. Todo en un solo lugar.
                     </p>
                     <a href="{{ url('/calendario') }}"
                        class="inline-flex items-center gap-2.5 mt-8 px-7 py-3.5 text-base font-bold text-udg-blue bg-white rounded-full hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">

@@ -19,7 +19,7 @@ class UpdateEventoTipoRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                Rule::unique('eventos_tipos', 'nombre')->ignore($this->route('eventos_tipo')),
+                Rule::unique('eventos_tipos', 'nombre')->ignore($this->route('eventoTipo')),
             ],
         ];
     }

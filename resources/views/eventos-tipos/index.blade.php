@@ -5,7 +5,7 @@
 
     {{-- Cabecera en el área de contenido --}}
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Tipos de Evento</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Tipos de evento</h1>
         <p class="text-sm text-gray-500 mt-1">Categorías para clasificar los eventos académicos.</p>
     </div>
 

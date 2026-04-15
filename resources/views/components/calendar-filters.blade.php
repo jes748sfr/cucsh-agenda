@@ -18,7 +18,7 @@
 
     {{-- Filtro: Institucion (dropdown) --}}
     <div class="relative" x-cloak>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Institucion</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Sede</label>
         <button type="button"
                 class="inline-flex items-center justify-between gap-2 w-full min-w-[10rem] rounded-md border shadow-sm text-sm px-3 py-[7px] transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                 :class="institucionId ? 'border-udg-gold bg-white text-gray-900' : 'border-gray-300 bg-white text-gray-700'"
@@ -73,7 +73,7 @@
 
     {{-- Filtro: Administraciones (dropdown checklist) --}}
     <div class="relative" x-cloak>
-        <label class="block text-xs font-medium text-gray-500 mb-1">Administracion</label>
+        <label class="block text-xs font-medium text-gray-500 mb-1">Administración</label>
         <button type="button"
                 class="inline-flex items-center justify-between gap-2 w-full min-w-[12rem] rounded-md border shadow-sm text-sm px-3 py-[7px] transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                 :class="adminFilterActive ? 'border-udg-gold bg-white text-gray-900' : 'border-gray-300 bg-white text-gray-700'"

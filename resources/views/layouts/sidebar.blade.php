@@ -57,7 +57,7 @@
                             Tipos de Evento
                         </x-sidebar-sublink>
                         <x-sidebar-sublink :href="route('instituciones.index')" :active="request()->routeIs('instituciones.*')">
-                            Instituciones
+                            Sedes
                         </x-sidebar-sublink>
                         <x-sidebar-sublink :href="route('administraciones.index')" :active="request()->routeIs('administraciones.*')">
                             Administraciones

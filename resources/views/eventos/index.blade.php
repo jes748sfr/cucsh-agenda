@@ -86,7 +86,7 @@
             <tr>
                 <x-table-header>Evento</x-table-header>
                 <x-table-header>Tipo</x-table-header>
-                <x-table-header>Institución</x-table-header>
+                <x-table-header>Sede</x-table-header>
                 <x-table-header>Organizador</x-table-header>
                 <x-table-header>Estado</x-table-header>
                 <x-table-header>Fecha Programada</x-table-header>

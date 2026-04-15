@@ -57,7 +57,8 @@
      @calendar-date-change.window="
          mesCorto = $event.detail.mesCorto;
          diaNum = $event.detail.diaNum;
-         titulo = $event.detail.titulo;
+         let t = $event.detail.titulo.toLowerCase();
+         titulo = t.charAt(0).toUpperCase() + t.slice(1);
          diaSemana = $event.detail.diaSemana;
          if ($event.detail.viewType) vistaActual = $event.detail.viewType;
          if ($event.detail.fechaISO) fechaISO = $event.detail.fechaISO;
@@ -73,7 +74,7 @@
         </div>
         {{-- Titulo de la vista + dia de la semana --}}
         <div class="min-w-0">
-            <p class="text-lg font-semibold text-gray-900 capitalize" x-text="titulo"></p>
+            <p class="text-lg font-semibold text-gray-900" x-text="titulo"></p>
             <p class="text-sm text-gray-500 capitalize" x-text="diaSemana"></p>
         </div>
     </div>

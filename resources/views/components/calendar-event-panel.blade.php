@@ -62,7 +62,7 @@
 
                     {{-- Institucion --}}
                     <div>
-                        <p class="text-xs font-semibold text-gray-500 mb-0.5">Institucion</p>
+                        <p class="text-xs font-semibold text-gray-500 mb-0.5">Sede</p>
                         <p class="text-sm text-gray-900" x-text="panelEvento.institucion || 'Sin institucion'"></p>
                     </div>
 
@@ -182,7 +182,7 @@
                         >
                             {{-- Institucion --}}
                             <div>
-                                <p class="text-xs font-semibold text-gray-500 mb-0.5">Institucion</p>
+                                <p class="text-xs font-semibold text-gray-500 mb-0.5">Sede</p>
                                 <p class="text-sm text-gray-900" x-text="ev.institucion || 'Sin institucion'"></p>
                             </div>
 

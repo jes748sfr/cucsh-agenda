@@ -5,14 +5,14 @@
 
     {{-- Cabecera en el área de contenido --}}
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Instituciones</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Sede</h1>
         <p class="text-sm text-gray-500 mt-1">Planteles universitarios donde se realizan eventos.</p>
     </div>
 
     {{-- Barra de acciones --}}
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p class="text-sm font-medium text-gray-700">
-            Todas las instituciones
+            Todas las Sedes
             <span class="ml-1 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                 {{ $instituciones->total() }}
             </span>
@@ -21,7 +21,7 @@
         @can('catalogos.crear')
             <x-primary-button type="button" x-data @click="$dispatch('catalog-create')">
                 <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
-                Nueva institución
+                Nueva Sede
             </x-primary-button>
         @endcan
     </div>
@@ -103,7 +103,7 @@
                         <x-confirm-delete-modal
                             name="delete-inst-{{ $institucion->id }}"
                             :action="url('instituciones/' . $institucion->id)"
-                            title="Eliminar institución"
+                            title="Eliminar Sede"
                             :description="'Se eliminará «' . $institucion->nombre . '». Esta acción no se puede deshacer.'"
                         />
                     @endcan
@@ -111,7 +111,7 @@
                     <x-table-row>
                         <td colspan="2" class="px-4 py-8 text-center">
                             <x-heroicon-o-building-library class="mx-auto h-10 w-10 text-gray-300" />
-                            <p class="mt-2 text-sm text-gray-500">No hay instituciones registradas.</p>
+                            <p class="mt-2 text-sm text-gray-500">No hay sedes registradas.</p>
                             @can('catalogos.crear')
                                 <button type="button"
                                     @click="openCreate()"
@@ -131,6 +131,6 @@
             </div>
         @endif
 
-        <x-catalog-form-modal entity-label="institución" :max-length="255" />
+        <x-catalog-form-modal entity-label="sede" :max-length="255" />
     </div>
 </x-app-layout>
