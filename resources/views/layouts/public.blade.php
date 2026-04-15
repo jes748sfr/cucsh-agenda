@@ -37,7 +37,7 @@
                 {{-- Acciones --}}
                 <div class="flex items-center gap-1">
                     {{-- Volver a la landing --}}
-                    <a href="{{ url('/') }}"
+                    <a href="{{ url('/inicio') }}"
                        class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition"
                        title="Volver al inicio">
                         <x-heroicon-o-arrow-left class="h-4 w-4" />

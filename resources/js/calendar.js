@@ -1067,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // TimeGrid (vista semanal/diaria)
         slotMinTime: '07:00:00',
         slotMaxTime: '22:00:00',
-        slotDuration: '00:30:00',
+        slotDuration: '00:15:00',
         slotLabelFormat: {
             hour: '2-digit',
             minute: '2-digit',

@@ -10,12 +10,12 @@ use App\Http\Controllers\UbicacionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::get('/inicio', function () {
     return view('landing');
 })->name('landing');
 
 // Calendario público (sin autenticación)
-Route::get('/calendario', function () {
+Route::get('/', function () {
     return view('calendario-publico', [
         'instituciones' => \App\Models\Institucion::orderBy('nombre')->get(),
         'administraciones' => \App\Models\Administracion::orderBy('nombre')->get(),
