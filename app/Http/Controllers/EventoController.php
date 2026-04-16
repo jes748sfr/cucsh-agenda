@@ -14,6 +14,9 @@ use App\Models\Ubicacion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Exports\EventosExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Http\Request;
 
 class EventoController extends Controller
 {
@@ -226,5 +229,13 @@ class EventoController extends Controller
                 ->orderBy('nombre')
                 ->get(),
         ];
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(
+            new EventosExport($request),
+            'eventos.xlsx'
+        );
     }
 }

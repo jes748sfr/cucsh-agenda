@@ -108,6 +108,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('eventos/{evento}', [EventoController::class, 'destroy'])
         ->middleware('permission:eventos.eliminar')
         ->name('eventos.destroy');
+    Route::get('eventos-export', [EventoController::class, 'export'])->name('eventos.export');
 });
 
 require __DIR__.'/auth.php';

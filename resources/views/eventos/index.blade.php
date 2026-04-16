@@ -18,15 +18,49 @@
             </span>
         </p>
 
-        @can('eventos.crear')
-            <a href="{{ route('eventos.create') }}">
-                <x-primary-button>
-                    <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
-                    Nuevo evento
-                </x-primary-button>
-            </a>
-        @endcan
+        <div>
+            @can('reportes.generar')
+            <x-primary-button type="button" x-data @click="$dispatch('catalog-event')">
+                <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
+                Exportar eventos
+            </x-primary-button>
+            @endcan
+
+            @can('eventos.crear')
+                <a href="{{ route('eventos.create') }}">
+                    <x-primary-button>
+                        <x-heroicon-o-plus class="h-4 w-4 mr-1.5 -ml-0.5" />
+                        Nuevo evento
+                    </x-primary-button>
+                </a>
+            @endcan
+        </div>
     </div>
+
+    <div x-data="{
+            editing: {{ $errors->any() && old('_editing') == '1' ? 'true' : 'false' }},
+            editId: '{{ old('_edit_id', '') }}',
+            nombre: {{ Js::from(old('nombre', '')) }},
+            formAction: '{{ url('eventos-tipos') }}',
+
+            openCreate() {
+                this.editing = false;
+                this.editId = null;
+                this.nombre = '';
+                this.formAction = '{{ url('eventos-tipos') }}';
+                $dispatch('open-modal', 'event-export');
+            }
+        }"
+        x-init="
+            @if($errors->any())
+                if (editing) {
+                    formAction = '{{ url('eventos-tipos') }}/' + editId;
+                }
+                $nextTick(() => $dispatch('open-modal', 'event-export'));
+            @endif
+        "
+        @catalog-event.window="openCreate()"
+    >
 
     {{-- Filtros --}}
     <form method="GET" action="{{ route('eventos.index') }}" class="mb-4 flex flex-wrap items-end gap-3">
@@ -206,5 +240,7 @@
             {{ $eventos->links() }}
         </div>
     @endif
+
+    <x-event-export-modal entity-label="Exportar eventos" :max-length="100" />
 
 </x-app-layout>
