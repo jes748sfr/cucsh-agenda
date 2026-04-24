@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <x-breadcrumb :items="[
-            ['label' => 'Instituciones', 'url' => route('instituciones.index')],
+            ['label' => 'Sedes', 'url' => route('instituciones.index')],
             ['label' => $institucion->nombre],
         ]" />
     </x-slot>
@@ -53,7 +53,7 @@
         </div>
 
         @can('catalogos.editar')
-            <x-catalog-form-modal entity-label="institución" :max-length="255" />
+            <x-catalog-form-modal entity-label="sede" :max-length="255" />
         @endcan
 
         @can('catalogos.eliminar')

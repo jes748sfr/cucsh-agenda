@@ -254,33 +254,86 @@
                             </template>
                         </div>
 
-                        {{-- Ubicación --}}
-                        <div class="col-span-full">
-                            <x-input-label for="ubicacion_id" value="Ubicación" />
-                            <div class="mt-2">
-                                <select
-                                    id="ubicacion_id"
-                                    name="ubicacion_id"
-                                    aria-describedby="ubicacion-error"
-                                    class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                >
-                                    <option value="">— Sin ubicación —</option>
-                                    @foreach ($ubicaciones as $ub)
-                                        <option value="{{ $ub->id }}"
-                                            {{ old('ubicacion_id') == $ub->id ? 'selected' : '' }}>
-                                            {{ $ub->nombre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
-                            <template x-if="hasError('ubicacion_id')">
-                                <div data-ajax-error class="mt-1">
-                                    <template x-for="msg in getErrors('ubicacion_id')" :key="msg">
-                                        <p class="text-sm text-red-600" x-text="msg"></p>
-                                    </template>
+
+
+                        <div
+                            class="col-span-full"
+                            x-data="{
+                                ubicacionGlobal: '',
+                                colorUbicacion: '#000000',
+
+                                copiarUbicacionInicial() {
+                                    let select = document.getElementById('ubicacion_id');
+                                    let selected = select.options[select.selectedIndex];
+
+                                    let color = selected.getAttribute('data-color');
+
+                                    if (color) {
+                                        this.colorUbicacion = color.startsWith('#') ? color : '#' + color;
+                                    }
+                                }
+                            }"
+                        >
+                            {{-- Ubicación --}}
+                            <div class="col-span-full">
+                                <x-input-label for="ubicacion_id" value="Ubicación" />
+                                <div class="mt-2">
+                                    <select
+                                        id="ubicacion_id"
+                                        name="ubicacion_id"
+                                        aria-describedby="ubicacion-error"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        x-model="ubicacionGlobal"
+                                        @change="copiarUbicacionInicial()"
+                                    >
+                                        <option value="">— Sin ubicación —</option>
+                                        @foreach ($ubicaciones as $ub)
+                                            <option value="{{ $ub->id }}"
+                                                {{ old('ubicacion_id') == $ub->id ? 'selected' : '' }}
+                                                data-color="{{ $ub->color }}">
+                                                {{ $ub->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </template>
+                                <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
+                                <template x-if="hasError('ubicacion_id')">
+                                    <div data-ajax-error class="mt-1">
+                                        <template x-for="msg in getErrors('ubicacion_id')" :key="msg">
+                                            <p class="text-sm text-red-600" x-text="msg"></p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div class="col-span-full mt-8 gap-x-6 gap-y-5">
+                                <div class="flex items-center gap-3">
+                                    <x-input-label value="Color del evento" class="!mb-0" />
+                                </div>
+
+                                <p class="mt-1 text-xs text-gray-500">
+                                    Define el color de la pill del evento en el calendario.
+                                </p>
+
+                                <input
+                                    type="color"
+                                    id="color"
+                                    name="color"
+                                    x-model="colorUbicacion"
+                                    class="w-10 h-10 rounded-full cursor-pointer border-2 border-transparent
+                                        hover:border-gray-300 transition-all duration-150
+                                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30
+                                        p-0 overflow-hidden"
+                                />
+                                <x-input-error :messages="$errors->get('color')" id="color-error" />
+                                <template x-if="hasError('color')">
+                                    <div data-ajax-error class="mt-1">
+                                        <template x-for="msg in getErrors('color')" :key="msg">
+                                            <p class="text-sm text-red-600" x-text="msg"></p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
 
                     </div>
@@ -289,12 +342,12 @@
                 {{-- Sección 2: Opciones --}}
                 <div class="border-b border-gray-200 pb-10">
                     <h3 class="text-base font-semibold text-gray-900">Opciones</h3>
-                    <p class="mt-1 text-sm text-gray-500">Estado del evento y notas adicionales.</p>
+                    <p class="mt-1 text-sm text-gray-500">Notas adicionales.</p>
 
                     <div class="mt-8 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6">
 
                         {{-- Activo --}}
-                        <div class="col-span-full" x-data="{ activo: {{ old('activo', '1') == '1' ? 'true' : 'false' }} }">
+                        {{-- <div class="col-span-full" x-data="{ activo: {{ old('activo', '1') == '1' ? 'true' : 'false' }} }">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <x-input-label value="Estado" />
@@ -341,7 +394,8 @@
                                     Inactivo — No visible
                                 </span>
                             </div>
-                        </div>
+                        </div> --}}
+
 
                         {{-- Notas convocatoria --}}
                         <div class="sm:col-span-full">
@@ -389,70 +443,6 @@
                             </template>
                         </div>
 
-                        {{-- Color del evento --}}
-                        <div class="col-span-full" x-data="{ color: '{{ old('color', '#7FBCD2') }}' }">
-                            <div class="flex items-center gap-3">
-                                <x-input-label value="Color del evento" class="!mb-0" />
-                                <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
-                                      :style="'background-color: ' + color">
-                                    <span x-text="{
-                                        '#7FBCD2': 'Global',
-                                        '#FF6868': 'Importante',
-                                        '#FFBB64': 'Administrativo',
-                                        '#B1C29E': 'Externo'
-                                    }[color] || ''"></span>
-                                </span>
-                            </div>
-                            <p class="mt-1 text-xs text-gray-500">Define el color de la pill del evento en el calendario. Cada color representa una categoría visual.</p>
-                            <input type="hidden" name="color" :value="color">
-                            <div class="mt-3 flex flex-wrap gap-3">
-                                <button type="button" @click="color = '#7FBCD2'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#7FBCD2' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #7FBCD2"
-                                        title="Global">
-                                    <span x-show="color === '#7FBCD2'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                                <button type="button" @click="color = '#FF6868'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#FF6868' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #FF6868"
-                                        title="Importante">
-                                    <span x-show="color === '#FF6868'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                                <button type="button" @click="color = '#FFBB64'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#FFBB64' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #FFBB64"
-                                        title="Administrativo">
-                                    <span x-show="color === '#FFBB64'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                                <button type="button" @click="color = '#B1C29E'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#B1C29E' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #B1C29E"
-                                        title="Externo">
-                                    <span x-show="color === '#B1C29E'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                            </div>
-                            <x-input-error :messages="$errors->get('color')" id="color-error" />
-                            <template x-if="hasError('color')">
-                                <div data-ajax-error class="mt-1">
-                                    <template x-for="msg in getErrors('color')" :key="msg">
-                                        <p class="text-sm text-red-600" x-text="msg"></p>
-                                    </template>
-                                </div>
-                            </template>
-                        </div>
-
                     </div>
                 </div>
 
@@ -473,6 +463,13 @@
                         rangoHoraInicio: '',
                         rangoHoraFin: '',
                         rangoError: '',
+                        ubicacionGlobal: '',
+                        copiarUbicacionInicial() {
+                            this.fechas = this.fechas.map(f => ({
+                                ...f,
+                                ubicacion_id: this.ubicacionGlobal
+                            }));
+                        },
                         // Desactivar generador de rango si hay más de 1 fecha manual
                         get rangoDisponible() {
                             return this.fechas.length <= 1;
@@ -584,6 +581,26 @@
                                     </select>
                                 </div>
 
+                                {{-- Ubicacion individual --}}
+                                {{-- <div class="sm:col-span-2">
+                                    <x-input-label for="ubicacion_id" value="Ubicación" />
+                                    <div class="mt-2">
+                                        <select
+                                            :id="'ubicacion_id_' + i"
+                                            :name="'fechas[' + i + '][ubicacion_id]'"
+                                            x-model="item.ubicacion_id"
+                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        >
+                                            <option value="">— Sin ubicación —</option>
+                                            @foreach ($ubicaciones as $ub)
+                                                <option value="{{ $ub->id }}">
+                                                    {{ $ub->nombre }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div> --}}
+
                                 {{-- Botón eliminar fila --}}
                                 <div class="sm:col-span-1 flex items-end justify-center pb-0.5">
                                     <button
@@ -639,7 +656,7 @@
                                 </div>
                             </div>
                         </div>
-                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
+                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.ubicacion_id', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
                             {{-- Pre-llenar errores server-side en la variable Alpine --}}
                             <script>
                                 document.addEventListener('alpine:init', () => {

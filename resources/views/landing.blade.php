@@ -90,7 +90,7 @@
                                class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-udg-blue transition-colors rounded-lg">
                                 Funciones
                             </a>
-                            <a href="{{ url('/calendario') }}"
+                            <a href="{{ url('/') }}"
                                class="px-3 py-2 text-sm font-medium text-gray-600 hover:text-udg-blue transition-colors rounded-lg">
                                 Calendario
                             </a>
@@ -98,12 +98,21 @@
 
                         {{-- Acciones (desktop) --}}
                         <div class="hidden md:flex items-center gap-3">
-                            <a href="{{ route('login') }}"
-                               class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
-                                Iniciar sesión
-                            </a>
-                            <a href="{{ url('/calendario') }}"
+                            @auth
+                                <a href="{{ route('dashboard') }}"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+                                    Dashborad
+                                </a>
+                            @endauth
+                            @guest
+                                <a href="{{ route('login') }}"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+                                    Iniciar sesión
+                                </a>
+                            @endguest
+                            <a href="{{ url('/') }}"
                                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-udg-blue rounded-full hover:bg-udg-blue-light transition-colors shadow-sm">
                                 Ver calendario
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0V15"/></svg>
@@ -132,9 +141,9 @@
                          class="md:hidden border-t border-gray-100 pb-4 pt-2 space-y-1">
                         <a href="#inicio" @click="mobileNav = false" class="block px-3 py-2 text-sm font-medium text-udg-blue rounded-lg">Inicio</a>
                         <a href="#funciones" @click="mobileNav = false" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-udg-blue rounded-lg">Funciones</a>
-                        <a href="{{ url('/calendario') }}" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-udg-blue rounded-lg">Calendario</a>
+                        <a href="{{ url('/') }}" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:text-udg-blue rounded-lg">Calendario</a>
                         <div class="border-t border-gray-100 mt-2 pt-2 flex flex-col gap-2 px-3">
-                            <a href="{{ url('/calendario') }}"
+                            <a href="{{ url('/') }}"
                                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-udg-blue rounded-full hover:bg-udg-blue-light transition-colors">
                                 Ver calendario
                                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0V15"/></svg>
@@ -180,7 +189,7 @@
                     {{-- Botones CTA --}}
                     <div class="landing-fade-up landing-fade-up-delay-3 mt-8 sm:mt-10 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                         {{-- CTA principal --}}
-                        <a href="{{ url('/calendario') }}"
+                        <a href="{{ url('/') }}"
                            class="inline-flex items-center gap-2.5 px-7 py-3.5 text-base font-bold text-white bg-udg-blue rounded-full hover:bg-udg-blue-light transition-all shadow-lg shadow-udg-blue/20 hover:shadow-xl hover:shadow-udg-blue/30 hover:-translate-y-0.5">
                             Ver calendario
                             <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0V15"/></svg>
@@ -287,7 +296,7 @@
                     <p class="mt-3 text-base text-white/70 leading-relaxed max-w-lg mx-auto">
                         Conferencias, talleres, seminarios y más. Todo en un solo lugar.
                     </p>
-                    <a href="{{ url('/calendario') }}"
+                    <a href="{{ url('/') }}"
                        class="inline-flex items-center gap-2.5 mt-8 px-7 py-3.5 text-base font-bold text-udg-blue bg-white rounded-full hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
                         Ir al calendario
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>

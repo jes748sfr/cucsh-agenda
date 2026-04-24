@@ -238,4 +238,20 @@ class EventoController extends Controller
             'eventos.xlsx'
         );
     }
+
+    public function cancelar(Request $request, Evento $evento)
+    {
+        $evento->update([
+            'activo' => !$evento->activo,
+        ]);
+
+        $redirectUrl = route('eventos.show', $evento);
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => $redirectUrl]);
+        }
+
+        return redirect($redirectUrl)
+            ->with('success', __('El estado del evento se actualizó correctamente.'));
+    }
 }

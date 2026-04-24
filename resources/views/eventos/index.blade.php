@@ -71,7 +71,7 @@
                 class="block w-full rounded-md border-gray-300 shadow-sm text-sm focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30">
                 <option value="">Todos</option>
                 <option value="activo" {{ request('estado') === 'activo' ? 'selected' : '' }}>Activo</option>
-                <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Inactivo</option>
+                <option value="inactivo" {{ request('estado') === 'inactivo' ? 'selected' : '' }}>Cancelado</option>
             </select>
         </div>
 
@@ -170,7 +170,7 @@
                         @if ($evento->activo)
                             <x-badge color="success" dot>Activo</x-badge>
                         @else
-                            <x-badge color="gray" dot>Inactivo</x-badge>
+                            <x-badge color="red" dot>Cancelado</x-badge>
                         @endif
                     </x-table-cell>
 

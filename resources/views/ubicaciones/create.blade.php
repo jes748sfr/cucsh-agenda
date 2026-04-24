@@ -68,6 +68,58 @@
                             <x-input-error :messages="$errors->get('institucion_id')" id="institucion-error" />
                         </div>
 
+                        {{-- Color de la ubicacion --}}
+                        <div class="col-span-full">
+                            <div class="flex items-center gap-3">
+                                <x-input-label value="Color del evento" class="!mb-0" />
+                            </div>
+
+                            <p class="mt-1 text-xs text-gray-500">
+                                Define el color de la pill del evento en el calendario.
+                            </p>
+
+                            <div class="mt-3">
+                                <input
+                                    type="color"
+                                    x-model="color"
+                                    class="w-10 h-10 rounded-full cursor-pointer border-2 border-transparent
+                                        hover:border-gray-300 transition-all duration-150
+                                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30
+                                        p-0 overflow-hidden"
+                                        name="color"
+                                        id="color"
+                                        x-init="color = '#7FBCD2'"
+                                >
+                            </div>
+                            <x-input-error :messages="$errors->get('color')" id="color-error" />
+                            <template x-if="hasError('color')">
+                                <div data-ajax-error class="mt-1">
+                                    <template x-for="msg in getErrors('color')" :key="msg">
+                                        <p class="text-sm text-red-600" x-text="msg"></p>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- capacidad --}}
+                        <div class="sm:col-span-4">
+                            <x-input-label for="capacidad" value="capacidad *" />
+                            <div class="mt-2">
+                                <x-text-input
+                                    id="capacidad"
+                                    name="capacidad"
+                                    type="number"
+                                    class="block w-full"
+                                    :value="old('capacidad')"
+                                    placeholder="250"
+                                    maxlength="255"
+                                    autofocus
+                                    aria-describedby="capacidad-error"
+                                />
+                            </div>
+                            <x-input-error :messages="$errors->get('capacidad')" id="capacidad-error" />
+                        </div>
+
                     </div>
                 </div>
 

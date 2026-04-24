@@ -109,6 +109,10 @@ Route::middleware('auth')->group(function () {
         ->middleware('permission:eventos.eliminar')
         ->name('eventos.destroy');
     Route::get('eventos-export', [EventoController::class, 'export'])->name('eventos.export');
+    Route::put('/eventos/{evento}/cancelar', [EventoController::class, 'cancelar'])
+    ->name('eventos.cancelar');
+
+    Route::post('eventos-exportando', [EventoController::class, 'export'])->name('eventos.exportando');
 });
 
 require __DIR__.'/auth.php';

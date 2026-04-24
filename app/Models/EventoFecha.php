@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Evento $evento
+ * @property-read Ubicacion|null $ubicacion_rel
  */
 class EventoFecha extends Model
 {
@@ -22,6 +23,7 @@ class EventoFecha extends Model
 
     protected $fillable = [
         'evento_id',
+        'ubicacion_id',
         'fecha',
         'hora_inicio',
         'hora_fin',
@@ -39,5 +41,10 @@ class EventoFecha extends Model
     public function evento(): BelongsTo
     {
         return $this->belongsTo(Evento::class);
+    }
+
+    public function ubicacionRel(): BelongsTo
+    {
+        return $this->belongsTo(Ubicacion::class, 'ubicacion_id');
     }
 }

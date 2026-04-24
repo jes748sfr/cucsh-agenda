@@ -47,7 +47,7 @@
 
                         {{-- Teléfono --}}
                         <div class="sm:col-span-3">
-                            <x-input-label for="tel" value="Teléfono" />
+                            <x-input-label for="tel" value="Ext." />
                             <div class="mt-2">
                                 <x-text-input
                                     id="tel"

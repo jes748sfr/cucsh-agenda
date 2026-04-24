@@ -46,7 +46,7 @@
 
                         {{-- Teléfono --}}
                         <div class="sm:col-span-3">
-                            <x-input-label for="tel" value="Teléfono" />
+                            <x-input-label for="tel" value="Ext." />
                             <div class="mt-2">
                                 <x-text-input
                                     id="tel"
@@ -54,7 +54,7 @@
                                     type="tel"
                                     class="block w-full"
                                     :value="old('tel')"
-                                    placeholder="+52 33 1234 5678"
+                                    placeholder="33123"
                                     maxlength="20"
                                     aria-describedby="tel-error"
                                 />

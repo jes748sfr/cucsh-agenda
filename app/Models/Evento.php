@@ -82,4 +82,11 @@ class Evento extends Model
     {
         return $this->hasMany(EventoFecha::class);
     }
+
+    public function proximaFecha()
+    {
+        return $this->hasOne(EventoFecha::class)
+            ->where('fecha', '>=', now())
+            ->orderBy('fecha');
+    }
 }

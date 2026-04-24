@@ -26,6 +26,8 @@ class Ubicacion extends Model
         'nombre',
         'institucion_id',
         'activo',
+        'color',
+        'capacidad',
     ];
 
     protected function casts(): array

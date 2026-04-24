@@ -28,6 +28,9 @@
 
     </div>
 
+    <x-modal-calendar entity-label="Eventos" :max-length="255" />
+    <x-modal-calendar-evento entity-label="Eventos" :max-length="255" />
+
     {{-- Scripts Alpine compartidos (eventPanel, calendarFilters) + carga calendar.js --}}
     @include('partials.calendar-scripts', ['isPublic' => false])
 

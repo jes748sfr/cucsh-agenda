@@ -1312,7 +1312,56 @@ document.addEventListener('DOMContentLoaded', function () {
         dateClick: function (info) {
             if (info.view.type === 'dayGridMonth') {
                 // En vista mensual: navegar a vista diaria
-                calendar.changeView('timeGridDay', info.dateStr);
+                const date = info.dateStr;
+
+        // 🚀 Fetch SOLO del día seleccionado
+        const params = new URLSearchParams();
+        params.set('start', date);
+        params.set('end', date);
+
+        // filtros globales si existen
+        if (window.__calendarFilters) {
+            const apiParams = window.__calendarFilters.getApiParams();
+            Object.keys(apiParams).forEach(function (key) {
+                const value = apiParams[key];
+
+                if (Array.isArray(value)) {
+                    value.forEach(v => params.append(key, v));
+                } else {
+                    params.set(key, value);
+                }
+            });
+        }
+
+        window.dispatchEvent(new CustomEvent('open-modal', {
+        detail: 'agenda-belenes'
+    }));
+
+        window.dispatchEvent(new CustomEvent('modal-data-agenda-belenes', {
+            detail: {
+                fecha: date,
+                events: [],
+                loading: true
+            }
+        }));
+
+        fetch('/api/events?' + params.toString())
+            .then(r => r.json())
+            .then(data => {
+                    window.dispatchEvent(new CustomEvent('modal-data-agenda-belenes', {
+                        detail: {
+                            fecha: date,
+                            events: data,
+                            loading: false
+                        }
+                    }));
+
+                    window.dispatchEvent(new CustomEvent('open-modal', {
+                        detail: 'agenda-belenes'
+                    }));
+                });
+                //alert("Hola");
+                //calendar.changeView('timeGridDay', info.dateStr);
             } else if (info.view.type === 'timeGridWeek' || info.view.type === 'timeGridDay') {
                 // En vistas timeGrid: redirigir a crear evento con fecha y hora pre-llenadas
                 if (!window.__calendarPublicMode) {

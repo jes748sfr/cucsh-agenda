@@ -18,7 +18,7 @@
             :class="!institucionId && 'font-semibold text-udg-blue'"
             @click="selectInstitucion(null, null); institucionOpen = false"
     >
-        Todas las instituciones
+        Todas las sedes
     </button>
     <div class="border-t border-gray-100 my-0.5"></div>
     @foreach ($instituciones as $inst)

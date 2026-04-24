@@ -24,6 +24,7 @@ class EventoTipoSeeder extends Seeder
             'Exposición',
             'Presentación de libro',
             'Examen profesional',
+            'Otro',
         ];
 
         foreach ($tipos as $tipo) {

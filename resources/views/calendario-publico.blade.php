@@ -20,7 +20,7 @@
             </div>
 
             {{-- Filtros del calendario --}}
-            <x-calendar-filters :instituciones="$instituciones" :administraciones="$administraciones" :eventos-tipos="$eventosTipos" />
+            {{-- <x-calendar-filters :instituciones="$instituciones" :administraciones="$administraciones" :eventos-tipos="$eventosTipos" /> --}}
         </div>
 
         {{-- Contenedor FullCalendar --}}
@@ -34,6 +34,9 @@
         </div>
 
     </div>
+
+    <x-modal-calendar entity-label="Eventos" :max-length="255" />
+    <x-modal-calendar-evento entity-label="Eventos" :max-length="255" />
 
     {{-- Scripts Alpine compartidos (eventPanel, calendarFilters) + carga calendar.js --}}
     @include('partials.calendar-scripts', ['isPublic' => true])

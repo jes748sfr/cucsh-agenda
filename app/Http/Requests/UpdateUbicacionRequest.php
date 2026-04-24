@@ -23,6 +23,8 @@ class UpdateUbicacionRequest extends FormRequest
             ],
             'institucion_id' => ['nullable', 'integer', 'exists:instituciones,id'],
             'activo' => ['sometimes', 'boolean'],
+            'color' => ['required', 'string'],
+            'capacidad' => ['nullable', 'integer'],
         ];
     }
 
@@ -33,6 +35,7 @@ class UpdateUbicacionRequest extends FormRequest
             'nombre.max' => 'El nombre no puede exceder 255 caracteres.',
             'nombre.unique' => 'Ya existe una ubicación con este nombre.',
             'institucion_id.exists' => 'La institución seleccionada no existe.',
+            'color.required' => 'El color es obligatorio.',
         ];
     }
 }

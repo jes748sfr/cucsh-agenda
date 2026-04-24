@@ -86,7 +86,9 @@ class EventosExport implements FromCollection, WithMapping, WithHeadings
 
             // horas
             $evento->fechas->map(function ($f) {
-                return $f->hora_inicio . ' - ' . $f->hora_fin;
+                return $f->fecha->format('Y-m-d') . ' ' .
+                    \Carbon\Carbon::parse($f->hora_inicio)->format('H:i') . ' - ' .
+                    \Carbon\Carbon::parse($f->hora_fin)->format('H:i');
             })->join(', ')
         ];
     }

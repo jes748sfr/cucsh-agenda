@@ -53,6 +53,11 @@
         {{-- Información general --}}
         <div class="rounded-lg bg-white shadow-sm border border-gray-200 p-6">
             <dl class="divide-y divide-gray-100">
+                <div class="">
+                    <dt class="text-sm font-medium text-gray-500 text-right">
+                        Folio: {{ $evento->id }}
+                    </dt>
+                </div>
 
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4">
                     <dt class="text-sm font-medium text-gray-500">Nombre</dt>
@@ -107,7 +112,7 @@
                         @if ($evento->activo)
                             <x-badge color="success" dot>Activo</x-badge>
                         @else
-                            <x-badge color="gray" dot>Inactivo</x-badge>
+                            <x-badge color="red" dot>Cancelado</x-badge>
                         @endif
                     </dd>
                 </div>

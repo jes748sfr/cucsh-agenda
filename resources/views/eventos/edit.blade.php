@@ -21,7 +21,7 @@
             </a>
             <div class="min-w-0">
                 <h2 class="text-lg font-semibold text-gray-900 truncate">Editar evento</h2>
-                <p class="text-xs text-gray-400 truncate">{{ $evento->nombre }}</p>
+                <p class="text-xs text-gray-400 truncate">{{ $evento->nombre }} folio: {{ $evento->id }}</p>
             </div>
         </div>
     </x-slot>
@@ -255,33 +255,92 @@
                             </template>
                         </div>
 
-                        {{-- Ubicación --}}
-                        <div class="col-span-full">
-                            <x-input-label for="ubicacion_id" value="Ubicación" />
-                            <div class="mt-2">
-                                <select
-                                    id="ubicacion_id"
-                                    name="ubicacion_id"
-                                    aria-describedby="ubicacion-error"
-                                    class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                >
-                                    <option value="">— Sin ubicación —</option>
-                                    @foreach ($ubicaciones as $ub)
-                                        <option value="{{ $ub->id }}"
-                                            {{ old('ubicacion_id', $evento->ubicacion_id) == $ub->id ? 'selected' : '' }}>
-                                            {{ $ub->nombre }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
-                            <template x-if="hasError('ubicacion_id')">
-                                <div data-ajax-error class="mt-1">
-                                    <template x-for="msg in getErrors('ubicacion_id')" :key="msg">
-                                        <p class="text-sm text-red-600" x-text="msg"></p>
-                                    </template>
+                        <div
+                            class="col-span-full"
+                            x-data="{
+                                ubicacionGlobal: '{{ old('ubicacion_id', $evento->ubicacion_id) }}',
+                                colorUbicacion: '{{ old('color', $evento->color ?? '#000000') }}',
+
+                                copiarUbicacionInicial() {
+                                    let select = document.getElementById('ubicacion_id');
+                                    let selected = select.options[select.selectedIndex];
+
+                                    let color = selected.getAttribute('data-color');
+
+                                    if (color) {
+                                        this.colorUbicacion = color.startsWith('#') ? color : '#' + color;
+                                    }
+                                }
+                            }"
+                            x-init="copiarUbicacionInicial()"
+                        >
+
+                            {{-- Ubicación --}}
+                            <div class="col-span-full">
+                                <x-input-label for="ubicacion_id" value="Ubicación" />
+
+                                <div class="mt-2">
+                                    <select
+                                        id="ubicacion_id"
+                                        name="ubicacion_id"
+                                        aria-describedby="ubicacion-error"
+                                        class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
+                                        x-model="ubicacionGlobal"
+                                        @change="copiarUbicacionInicial()"
+                                    >
+                                        <option value="">— Sin ubicación —</option>
+
+                                        @foreach ($ubicaciones as $ub)
+                                            <option
+                                                value="{{ $ub->id }}"
+                                                data-color="{{ $ub->color }}"
+                                            >
+                                                {{ $ub->nombre }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                            </template>
+
+                                <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
+
+                                <template x-if="hasError('ubicacion_id')">
+                                    <div data-ajax-error class="mt-1">
+                                        <template x-for="msg in getErrors('ubicacion_id')" :key="msg">
+                                            <p class="text-sm text-red-600" x-text="msg"></p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
+
+                            {{-- Color --}}
+                            <div class="col-span-full mt-8 gap-x-6 gap-y-5">
+                                <div class="flex items-center gap-3">
+                                    <x-input-label value="Color del evento" class="!mb-0" />
+                                </div>
+
+                                <p class="mt-1 text-xs text-gray-500">
+                                    Define el color de la pill del evento en el calendario.
+                                </p>
+
+                                <input
+                                    type="color"
+                                    id="color"
+                                    name="color"
+                                    x-model="colorUbicacion"
+                                    class="w-10 h-10 rounded-full cursor-pointer border-2 border-transparent
+                                        hover:border-gray-300 transition-all duration-150
+                                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30
+                                        p-0 overflow-hidden"
+                                />
+                                <x-input-error :messages="$errors->get('color')" id="color-error" />
+                                <template x-if="hasError('color')">
+                                    <div data-ajax-error class="mt-1">
+                                        <template x-for="msg in getErrors('color')" :key="msg">
+                                            <p class="text-sm text-red-600" x-text="msg"></p>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
 
                     </div>
@@ -293,56 +352,6 @@
                     <p class="mt-1 text-sm text-gray-500">Estado del evento y notas adicionales.</p>
 
                     <div class="mt-8 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6">
-
-                        {{-- Activo --}}
-                        <div class="col-span-full" x-data="{ activo: {{ old('activo', $evento->activo ? '1' : '0') == '1' ? 'true' : 'false' }} }">
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <x-input-label value="Estado" />
-                                    <p class="mt-1 text-xs text-gray-500">Define si el evento es visible en el calendario.</p>
-                                </div>
-                                <div class="flex items-center gap-3 pt-0.5">
-                                    <input type="hidden" name="activo" :value="activo ? '1' : '0'">
-                                    <button
-                                        type="button"
-                                        @click="activo = !activo"
-                                        :class="activo ? 'bg-primary' : 'bg-gray-200'"
-                                        class="relative inline-flex flex-shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
-                                        style="width: 2.75rem; height: 1.5rem;"
-                                        :aria-checked="activo.toString()"
-                                        aria-label="Estado del evento"
-                                        role="switch"
-                                    >
-                                        <span
-                                            :style="{
-                                                width: '1.125rem',
-                                                height: '1.125rem',
-                                                transform: activo ? 'translateX(1.375rem)' : 'translateX(0.1875rem)'
-                                            }"
-                                            class="inline-block rounded-full bg-white shadow transition-transform duration-200 ease-in-out"
-                                        ></span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                <span
-                                    x-show="activo"
-                                    class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
-                                    x-cloak
-                                >
-                                    <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                                    Activo — Visible en el calendario
-                                </span>
-                                <span
-                                    x-show="!activo"
-                                    class="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
-                                    x-cloak
-                                >
-                                    <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-                                    Inactivo — No visible
-                                </span>
-                            </div>
-                        </div>
 
                         {{-- Notas convocatoria --}}
                         <div class="sm:col-span-full">
@@ -384,70 +393,6 @@
                             <template x-if="hasError('notas_servicios')">
                                 <div data-ajax-error class="mt-1">
                                     <template x-for="msg in getErrors('notas_servicios')" :key="msg">
-                                        <p class="text-sm text-red-600" x-text="msg"></p>
-                                    </template>
-                                </div>
-                            </template>
-                        </div>
-
-                        {{-- Color del evento --}}
-                        <div class="col-span-full" x-data="{ color: '{{ old('color', $evento->color) }}' }">
-                            <div class="flex items-center gap-3">
-                                <x-input-label value="Color del evento" class="!mb-0" />
-                                <span class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold text-white shadow-sm"
-                                      :style="'background-color: ' + color">
-                                    <span x-text="{
-                                        '#7FBCD2': 'Global',
-                                        '#FF6868': 'Importante',
-                                        '#FFBB64': 'Administrativo',
-                                        '#B1C29E': 'Externo'
-                                    }[color] || ''"></span>
-                                </span>
-                            </div>
-                            <p class="mt-1 text-xs text-gray-500">Define el color de la pill del evento en el calendario. Cada color representa una categoria visual.</p>
-                            <input type="hidden" name="color" :value="color">
-                            <div class="mt-3 flex flex-wrap gap-3">
-                                <button type="button" @click="color = '#7FBCD2'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#7FBCD2' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #7FBCD2"
-                                        title="Global">
-                                    <span x-show="color === '#7FBCD2'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                                <button type="button" @click="color = '#FF6868'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#FF6868' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #FF6868"
-                                        title="Importante">
-                                    <span x-show="color === '#FF6868'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                                <button type="button" @click="color = '#FFBB64'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#FFBB64' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #FFBB64"
-                                        title="Administrativo">
-                                    <span x-show="color === '#FFBB64'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                                <button type="button" @click="color = '#B1C29E'"
-                                        class="relative w-10 h-10 rounded-full border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-udg-gold/30"
-                                        :class="color === '#B1C29E' ? 'border-gray-900 ring-2 ring-gray-900/20' : 'border-transparent hover:border-gray-300'"
-                                        style="background-color: #B1C29E"
-                                        title="Externo">
-                                    <span x-show="color === '#B1C29E'" class="absolute inset-0 flex items-center justify-center">
-                                        <svg class="w-5 h-5 text-white drop-shadow" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                                    </span>
-                                </button>
-                            </div>
-                            <x-input-error :messages="$errors->get('color')" id="color-error" />
-                            <template x-if="hasError('color')">
-                                <div data-ajax-error class="mt-1">
-                                    <template x-for="msg in getErrors('color')" :key="msg">
                                         <p class="text-sm text-red-600" x-text="msg"></p>
                                     </template>
                                 </div>
@@ -626,6 +571,45 @@
                         Guardando...
                     </span>
                 </button>
+                <div x-data="eventoFormcancelar({{ $evento->id }})">
+                    @if($evento->activo)
+                        <button
+                        :disabled="loading"
+                        @click="cancelarEvento()"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-udg-blue focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        <span x-show="!loading" class="inline-flex items-center gap-1.5">
+                            <x-heroicon-m-archive-box-x-mark class="h-4 w-4"/>
+                            Cancelar evento
+                        </span>
+                        <span x-show="loading" x-cloak class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Guardando...
+                        </span>
+                    </button>
+                    @else
+                    <button
+                        :disabled="loading"
+                        @click="cancelarEvento()"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-udg-blue focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        <span x-show="!loading" class="inline-flex items-center gap-1.5">
+                            <x-heroicon-m-archive-box-x-mark class="h-4 w-4"/>
+                            Activar evento
+                        </span>
+                        <span x-show="loading" x-cloak class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Guardando...
+                        </span>
+                    </button>
+                    @endif
+                </div>
             </div>
 
         </form>
@@ -726,6 +710,34 @@
                     }
                 };
             };
+
+            function eventoFormcancelar(id) {
+            return {
+                loading: false,
+
+                async cancelarEvento() {
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch(`/eventos/${id}/cancelar`, {
+                            method: 'PUT',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+}
         </script>
     @endpush
 
