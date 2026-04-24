@@ -1384,6 +1384,74 @@ document.addEventListener('DOMContentLoaded', function () {
             var isTimeGridDay = info.view.type === 'timeGridDay';
             var isDesktop = window.innerWidth >= 1024;
 
+            if (
+    info.view.type === 'dayGridMonth' &&
+    window.__calendarPublicMode
+) {
+
+    const date = ev.start
+        ? ev.start.toISOString().substring(0, 10)
+        : null;
+
+    const params = new URLSearchParams();
+    params.set('start', date);
+    params.set('end', date);
+
+    if (window.__calendarFilters) {
+        const apiParams = window.__calendarFilters.getApiParams();
+        Object.keys(apiParams).forEach(function (key) {
+            const value = apiParams[key];
+
+            if (Array.isArray(value)) {
+                value.forEach(v => params.append(key, v));
+            } else {
+                params.set(key, value);
+            }
+        });
+    }
+
+    window.dispatchEvent(new CustomEvent('open-modal', {
+        detail: 'agenda-belenes'
+    }));
+
+    window.dispatchEvent(new CustomEvent('modal-data-agenda-belenes', {
+        detail: {
+            fecha: date,
+            events: [],
+            loading: true
+        }
+    }));
+
+    fetch('/api/events?' + params.toString())
+        .then(r => r.json())
+        .then(data => {
+            window.dispatchEvent(new CustomEvent('modal-data-agenda-belenes', {
+                detail: {
+                    fecha: date,
+                    events: data,
+                    loading: false
+                }
+            }));
+
+            window.dispatchEvent(new CustomEvent('open-modal', {
+                detail: 'agenda-belenes'
+            }));
+        })
+        .catch(err => {
+            console.error(err);
+
+            window.dispatchEvent(new CustomEvent('modal-data-agenda-belenes', {
+                detail: {
+                    fecha: date,
+                    events: [],
+                    loading: false
+                }
+            }));
+        });
+
+    return;
+}
+
             // ── Vista semanal: popover de detalle (toggle) ──
             if (isTimeGridWeek) {
                 // Si el popover ya esta abierto para este mismo evento, cerrarlo
