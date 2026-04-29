@@ -56,7 +56,7 @@
                 </h5>
 
                 @can('reportes.generar')
-                <x-primary-button type="button" x-data @click="exportarDia()" class="bg-white text-cyan-600 transform transition hover:scale-105 hover:bg-white hover:text-cyan-600">
+                <x-primary-button type="button" x-data @click="exportarDia()" class="bg-white !text-cyan-600 hover:scale-105 hover:bg-white hover:text-cyan-600">
                     Exportar eventos
                 </x-primary-button>
                 @endcan
@@ -123,11 +123,12 @@
                                     <span x-text="formatTime(event.end)"></span>
                                 </div>
 
-                                <div class="text-xs text-gray-500 mt-1">
-                                    <div>Institución: <span x-text="event.extendedProps.institucion"></span></div>
-                                    <div>Tipo: <span x-text="event.extendedProps.tipo"></span></div>
-                                    <div>Organizador: <span x-text="event.extendedProps.organizador"></span></div>
-                                    <div>Ubicación: <span x-text="event.extendedProps.ubicacion"></span></div>
+
+
+                                <div class="text-sm text-gray-600 mt-1">
+                                    <div><span x-text="event.extendedProps.tipo"></span> <span x-text="event.extendedProps.ubicacion"></span></div>
+                                    <div><span x-text="event.extendedProps.organizador"></span></div>
+                                    {{-- <div><span x-text="event.extendedProps.institucion"></span></div> --}}
                                 </div>
 
                             </div>

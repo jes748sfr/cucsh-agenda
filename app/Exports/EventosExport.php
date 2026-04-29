@@ -8,8 +8,11 @@ use App\Models\EventoTipo;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class EventosExport implements FromCollection, WithMapping, WithHeadings
+class EventosExport implements FromCollection, WithMapping, WithHeadings, WithStyles, ShouldAutoSize
 {
 
     protected $fechaInicio;
@@ -90,6 +93,19 @@ class EventosExport implements FromCollection, WithMapping, WithHeadings
                     \Carbon\Carbon::parse($f->hora_inicio)->format('H:i') . ' - ' .
                     \Carbon\Carbon::parse($f->hora_fin)->format('H:i');
             })->join(', ')
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => [ // fila encabezado
+                'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+                'fill' => [
+                    'fillType' => 'solid',
+                    'startColor' => ['rgb' => '4F81BD']
+                ],
+            ],
         ];
     }
 }

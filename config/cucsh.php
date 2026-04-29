@@ -13,5 +13,7 @@ return [
     */
 
     'cta_email' => env('CTA_EMAIL'),
+    'generales_email' => env('GENERALES_EMAIL'),
+    'difusion_email' => env('DIFUSION_EMAIL'),
 
 ];

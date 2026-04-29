@@ -113,6 +113,30 @@ Route::middleware('auth')->group(function () {
     ->name('eventos.cancelar');
 
     Route::post('eventos-exportando', [EventoController::class, 'export'])->name('eventos.exportando');
+
+
+    //eventosVal
+    Route::get('eventosval', [EventoController::class, 'index'])
+        ->middleware('permission:eventosVal.ver')->name('eventos.index');
+    Route::middleware('permission:eventos.crear')->group(function () {
+        Route::get('eventos/create', [EventoController::class, 'create'])->name('eventos.create');
+        Route::post('eventos', [EventoController::class, 'store'])->name('eventos.store');
+    });
+    Route::get('eventos/{evento}', [EventoController::class, 'show'])
+        ->middleware('permission:eventos.ver')->name('eventos.show');
+    Route::middleware('permission:eventos.editar')->group(function () {
+        Route::get('eventos/{evento}/edit', [EventoController::class, 'edit'])->name('eventos.edit');
+        Route::put('eventos/{evento}', [EventoController::class, 'update'])->name('eventos.update');
+        Route::patch('eventos/{evento}', [EventoController::class, 'update']);
+    });
+    Route::delete('eventos/{evento}', [EventoController::class, 'destroy'])
+        ->middleware('permission:eventos.eliminar')
+        ->name('eventos.destroy');
+    Route::get('eventos-export', [EventoController::class, 'export'])->name('eventos.export');
+    Route::put('/eventos/{evento}/cancelar', [EventoController::class, 'cancelar'])
+    ->name('eventos.cancelar');
+
+    Route::post('eventos-exportando', [EventoController::class, 'export'])->name('eventos.exportando');
 });
 
 require __DIR__.'/auth.php';

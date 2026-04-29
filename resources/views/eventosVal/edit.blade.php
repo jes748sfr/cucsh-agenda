@@ -2,18 +2,27 @@
     @php
         $from = request()->query('from');
         $vista = request()->query('vista');
-        $fechaNav = request()->query('fecha');
-        $parentUrl = $from === 'dashboard'
-            ? route('dashboard') . '?' . http_build_query(array_filter(['vista' => $vista, 'fecha' => $fechaNav]))
-            : route('eventos.index');
-        $parentLabel = $from === 'dashboard' ? 'Panel' : 'Eventos';
+        if ($from === 'dashboard') {
+            $backUrl = route('dashboard') . ($vista ? '?vista=' . urlencode($vista) : '');
+        } else {
+            $back      = url()->previous();
+            $indexPath = rtrim(parse_url(route('eventos.index'), PHP_URL_PATH), '/');
+            $backPath  = rtrim(parse_url($back, PHP_URL_PATH), '/');
+            $backUrl   = ($backPath === $indexPath) ? $back : route('eventos.show', $evento);
+        }
     @endphp
 
     <x-slot name="header">
-        <div class="flex items-center gap-2 text-sm text-gray-500">
-            <a href="{{ $parentUrl }}" class="hover:text-primary transition-colors">{{ $parentLabel }}</a>
-            <x-heroicon-m-chevron-right class="h-4 w-4 flex-shrink-0" />
-            <span class="font-medium text-gray-900">Nuevo evento</span>
+        <div class="flex items-center gap-4 min-w-0">
+            <a href="{{ $backUrl }}"
+               class="text-gray-400 hover:text-gray-600 transition flex-shrink-0"
+               title="Volver">
+                <x-heroicon-o-arrow-left class="h-5 w-5" />
+            </a>
+            <div class="min-w-0">
+                <h2 class="text-lg font-semibold text-gray-900 truncate">Editar evento</h2>
+                <p class="text-xs text-gray-400 truncate">{{ $evento->nombre }} folio: {{ $evento->id }}</p>
+            </div>
         </div>
     </x-slot>
 
@@ -21,20 +30,12 @@
         <form
             x-data="eventoForm()"
             @submit.prevent="submitForm($el)"
-            action="{{ route('eventos.store') }}"
+            action="{{ route('eventos.update', $evento) }}"
             method="POST"
             novalidate
         >
             @csrf
-            @if ($from)
-                <input type="hidden" name="from" value="{{ $from }}">
-            @endif
-            @if ($vista)
-                <input type="hidden" name="vista" value="{{ $vista }}">
-            @endif
-            @if (request()->query('fecha'))
-                <input type="hidden" name="fecha" value="{{ request()->query('fecha') }}">
-            @endif
+            @method('PUT')
 
             <div class="space-y-10">
 
@@ -54,7 +55,7 @@
                                     name="nombre"
                                     type="text"
                                     class="block w-full"
-                                    :value="old('nombre')"
+                                    :value="old('nombre', $evento->nombre)"
                                     placeholder="Nombre del evento"
                                     maxlength="255"
                                     autofocus
@@ -84,7 +85,7 @@
                                     <option value="">— Seleccionar tipo —</option>
                                     @foreach ($tipos as $tipo)
                                         <option value="{{ $tipo->id }}"
-                                            {{ old('eventos_tipo_id') == $tipo->id ? 'selected' : '' }}>
+                                            {{ old('eventos_tipo_id', $evento->eventos_tipo_id) == $tipo->id ? 'selected' : '' }}>
                                             {{ $tipo->nombre }}
                                         </option>
                                     @endforeach
@@ -113,7 +114,7 @@
                                     <option value="">— Seleccionar Sede —</option>
                                     @foreach ($instituciones as $inst)
                                         <option value="{{ $inst->id }}"
-                                            {{ old('institucion_id', $instituciones->count() === 1 ? $instituciones->first()->id : '') == $inst->id ? 'selected' : '' }}>
+                                            {{ old('institucion_id', $evento->institucion_id) == $inst->id ? 'selected' : '' }}>
                                             {{ $inst->nombre }}
                                         </option>
                                     @endforeach
@@ -134,7 +135,7 @@
                             class="col-span-full"
                             x-data="{
                                 open: false,
-                                selectedId: '{{ old('organizador_id') }}',
+                                selectedId: '{{ old('organizador_id', $evento->organizador_id) }}',
                                 items: {{ Js::from($organizadores->map(fn($o) => [
                                     'id' => $o->id,
                                     'nombre' => $o->nombre,
@@ -161,7 +162,6 @@
                         >
                             <x-input-label for="organizador_id" value="Organizador *" />
                             <input type="hidden" name="organizador_id" :value="selectedId">
-                            <input type="hidden" name="organizador_nombre" :value="selected?.nombre">
                             <div class="mt-2 flex gap-2">
                                 <div class="relative w-full">
                                     {{-- Trigger --}}
@@ -255,13 +255,11 @@
                             </template>
                         </div>
 
-
-
                         <div
                             class="col-span-full"
                             x-data="{
-                                ubicacionGlobal: '',
-                                colorUbicacion: '#000000',
+                                ubicacionGlobal: '{{ old('ubicacion_id', $evento->ubicacion_id) }}',
+                                colorUbicacion: '{{ old('color', $evento->color ?? '#000000') }}',
 
                                 copiarUbicacionInicial() {
                                     let select = document.getElementById('ubicacion_id');
@@ -274,10 +272,13 @@
                                     }
                                 }
                             }"
+                            x-init="copiarUbicacionInicial()"
                         >
+
                             {{-- Ubicación --}}
                             <div class="col-span-full">
                                 <x-input-label for="ubicacion_id" value="Ubicación" />
+
                                 <div class="mt-2">
                                     <select
                                         id="ubicacion_id"
@@ -288,16 +289,20 @@
                                         @change="copiarUbicacionInicial()"
                                     >
                                         <option value="">— Sin ubicación —</option>
+
                                         @foreach ($ubicaciones as $ub)
-                                            <option value="{{ $ub->id }}"
-                                                {{ old('ubicacion_id') == $ub->id ? 'selected' : '' }}
-                                                data-color="{{ $ub->color }}">
+                                            <option
+                                                value="{{ $ub->id }}"
+                                                data-color="{{ $ub->color }}"
+                                            >
                                                 {{ $ub->nombre }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
+
                                 <x-input-error :messages="$errors->get('ubicacion_id')" id="ubicacion-error" />
+
                                 <template x-if="hasError('ubicacion_id')">
                                     <div data-ajax-error class="mt-1">
                                         <template x-for="msg in getErrors('ubicacion_id')" :key="msg">
@@ -307,6 +312,7 @@
                                 </template>
                             </div>
 
+                            {{-- Color --}}
                             <div class="col-span-full mt-8 gap-x-6 gap-y-5">
                                 <div class="flex items-center gap-3">
                                     <x-input-label value="Color del evento" class="!mb-0" />
@@ -343,60 +349,9 @@
                 {{-- Sección 2: Opciones --}}
                 <div class="border-b border-gray-200 pb-10">
                     <h3 class="text-base font-semibold text-gray-900">Opciones</h3>
-                    <p class="mt-1 text-sm text-gray-500">Notas adicionales.</p>
+                    <p class="mt-1 text-sm text-gray-500">Estado del evento y notas adicionales.</p>
 
                     <div class="mt-8 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-6">
-
-                        {{-- Activo --}}
-                        {{-- <div class="col-span-full" x-data="{ activo: {{ old('activo', '1') == '1' ? 'true' : 'false' }} }">
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <x-input-label value="Estado" />
-                                    <p class="mt-1 text-xs text-gray-500">Define si el evento es visible en el calendario.</p>
-                                </div>
-                                <div class="flex items-center gap-3 pt-0.5">
-                                    <input type="hidden" name="activo" :value="activo ? '1' : '0'">
-                                    <button
-                                        type="button"
-                                        @click="activo = !activo"
-                                        :class="activo ? 'bg-primary' : 'bg-gray-200'"
-                                        class="relative inline-flex flex-shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
-                                        style="width: 2.75rem; height: 1.5rem;"
-                                        :aria-checked="activo.toString()"
-                                        aria-label="Estado del evento"
-                                        role="switch"
-                                    >
-                                        <span
-                                            :style="{
-                                                width: '1.125rem',
-                                                height: '1.125rem',
-                                                transform: activo ? 'translateX(1.375rem)' : 'translateX(0.1875rem)'
-                                            }"
-                                            class="inline-block rounded-full bg-white shadow transition-transform duration-200 ease-in-out"
-                                        ></span>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="mt-2">
-                                <span
-                                    x-show="activo"
-                                    class="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
-                                    x-cloak
-                                >
-                                    <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                                    Activo — Visible en el calendario
-                                </span>
-                                <span
-                                    x-show="!activo"
-                                    class="inline-flex items-center gap-1.5 rounded-full bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10"
-                                    x-cloak
-                                >
-                                    <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span>
-                                    Inactivo — No visible
-                                </span>
-                            </div>
-                        </div> --}}
-
 
                         {{-- Notas convocatoria --}}
                         <div class="sm:col-span-full">
@@ -409,7 +364,7 @@
                                     aria-describedby="notas-cta-error"
                                     placeholder="Servicios requeridos al CTA: equipo audiovisual, transmisión en vivo, grabación, videoconferencia, etc."
                                     class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                >{{ old('notas_cta') }}</textarea>
+                                >{{ old('notas_cta', $evento->notas_cta) }}</textarea>
                             </div>
                             <x-input-error :messages="$errors->get('notas_cta')" id="notas-cta-error" />
                             <template x-if="hasError('notas_cta')">
@@ -423,7 +378,7 @@
 
                         {{-- Notas servicios --}}
                         <div class="sm:col-span-full">
-                            <x-input-label for="notas_servicios" value="Notas de servicios" />
+                            <x-input-label for="notas_servicios" value="Notas servicios" />
                             <div class="mt-2">
                                 <textarea
                                     id="notas_servicios"
@@ -432,7 +387,7 @@
                                     aria-describedby="notas-servicios-error"
                                     placeholder="Requerimientos de servicios (audio, sillas, etc.)..."
                                     class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                >{{ old('notas_servicios') }}</textarea>
+                                >{{ old('notas_servicios', $evento->notas_servicios) }}</textarea>
                             </div>
                             <x-input-error :messages="$errors->get('notas_servicios')" id="notas-servicios-error" />
                             <template x-if="hasError('notas_servicios')">
@@ -449,76 +404,22 @@
 
                 {{-- Sección 3: Fechas --}}
                 @php
-                    $defaultFechas = [[
-                        'fecha' => $prefillFecha ?? now()->format('Y-m-d'),
-                        'hora_inicio' => $prefillHoraInicio ?? '',
-                        'hora_fin' => '',
-                    ]];
+                    $fechasIniciales = old('fechas', $evento->fechas->map(fn($f) => [
+                        'fecha'       => $f->fecha->format('Y-m-d'),
+                        'hora_inicio' => $f->hora_inicio->format('H:i'),
+                        'hora_fin'    => $f->hora_fin->format('H:i'),
+                    ])->toArray());
                 @endphp
+
                 <div
-                    x-data="{
-                        fechas: {{ Js::from(old('fechas', $defaultFechas)) }},
-                        rangoOpen: false,
-                        rangoDesde: '',
-                        rangoHasta: '',
-                        rangoHoraInicio: '',
-                        rangoHoraFin: '',
-                        rangoError: '',
-                        ubicacionGlobal: '',
-                        copiarUbicacionInicial() {
-                            this.fechas = this.fechas.map(f => ({
-                                ...f,
-                                ubicacion_id: this.ubicacionGlobal
-                            }));
-                        },
-                        // Desactivar generador de rango si hay más de 1 fecha manual
-                        get rangoDisponible() {
-                            return this.fechas.length <= 1;
-                        },
-                        generarRango() {
-                            if (!this.rangoDesde || !this.rangoHasta || !this.rangoHoraInicio || !this.rangoHoraFin) {
-                                this.rangoError = 'Complete todos los campos del rango.';
-                                return;
-                            }
-                            if (this.rangoHoraFin <= this.rangoHoraInicio) {
-                                this.rangoError = 'La hora de fin debe ser posterior a la de inicio.';
-                                return;
-                            }
-                            const desde = new Date(this.rangoDesde + 'T00:00:00');
-                            const hasta = new Date(this.rangoHasta + 'T00:00:00');
-                            if (hasta < desde) {
-                                this.rangoError = 'La fecha final debe ser igual o posterior a la inicial.';
-                                return;
-                            }
-                            const diff = Math.round((hasta - desde) / 86400000) + 1;
-                            if (diff > 60) {
-                                this.rangoError = 'El rango no puede exceder 60 dias.';
-                                return;
-                            }
-                            this.rangoError = '';
-                            const nuevas = [];
-                            for (let d = new Date(desde); d <= hasta; d.setDate(d.getDate() + 1)) {
-                                const yyyy = d.getFullYear();
-                                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                                const dd = String(d.getDate()).padStart(2, '0');
-                                nuevas.push({
-                                    fecha: yyyy + '-' + mm + '-' + dd,
-                                    hora_inicio: this.rangoHoraInicio,
-                                    hora_fin: this.rangoHoraFin
-                                });
-                            }
-                            // Siempre reemplaza todas las fechas con las generadas
-                            this.fechas = nuevas;
-                        }
-                    }"
+                    x-data="{ fechas: {{ Js::from($fechasIniciales) }} }"
                     class="border-b border-gray-200 pb-10"
                 >
                     <h3 class="text-base font-semibold text-gray-900">Fechas y horarios</h3>
-                    <p class="mt-1 text-sm text-gray-500">Programa una o varias fechas para este evento.</p>
+                    <p class="mt-1 text-sm text-gray-500">Modifica las fechas programadas para este evento.</p>
 
                     <div class="mt-8 space-y-3">
 
-                        {{-- Filas individuales de fechas --}}
                         <template x-for="(item, i) in fechas" :key="i">
                             <div class="grid grid-cols-1 gap-3 sm:grid-cols-8 items-end">
 
@@ -532,12 +433,8 @@
                                         :id="'fecha_' + i"
                                         :name="'fechas[' + i + '][fecha]'"
                                         x-model="item.fecha"
-                                        :min="new Date().toISOString().slice(0,10)"
                                         class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
                                     >
-                                    <template x-if="i === 0">
-                                        <p x-show="false" class="hidden"></p>
-                                    </template>
                                 </div>
 
                                 {{-- Hora inicio --}}
@@ -582,26 +479,6 @@
                                     </select>
                                 </div>
 
-                                {{-- Ubicacion individual --}}
-                                {{-- <div class="sm:col-span-2">
-                                    <x-input-label for="ubicacion_id" value="Ubicación" />
-                                    <div class="mt-2">
-                                        <select
-                                            :id="'ubicacion_id_' + i"
-                                            :name="'fechas[' + i + '][ubicacion_id]'"
-                                            x-model="item.ubicacion_id"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                        >
-                                            <option value="">— Sin ubicación —</option>
-                                            @foreach ($ubicaciones as $ub)
-                                                <option value="{{ $ub->id }}">
-                                                    {{ $ub->nombre }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div> --}}
-
                                 {{-- Botón eliminar fila --}}
                                 <div class="sm:col-span-1 flex items-end justify-center pb-0.5">
                                     <button
@@ -619,32 +496,6 @@
                             </div>
                         </template>
 
-                        {{-- Botones agregar y limpiar fechas --}}
-                        <div class="flex items-center gap-4">
-                            <button
-                                type="button"
-                                @click="(() => {
-                                    const ultima = fechas[fechas.length - 1];
-                                    fechas.push({ fecha: '', hora_inicio: ultima?.hora_inicio || '', hora_fin: ultima?.hora_fin || '' });
-                                    rangoOpen = false;
-                                })()"
-                                class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover transition"
-                            >
-                                <x-heroicon-o-plus class="h-4 w-4" />
-                                Agregar fecha
-                            </button>
-                            <button
-                                type="button"
-                                x-show="fechas.length > 1"
-                                x-cloak
-                                @click="fechas = [{ fecha: '', hora_inicio: '', hora_fin: '' }]; rangoOpen = false"
-                                class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-danger hover:text-red-700 transition"
-                            >
-                                <x-heroicon-o-trash class="h-4 w-4" />
-                                Limpiar fechas
-                            </button>
-                        </div>
-
                         {{-- Errores de fechas (server-side en primera carga + AJAX dinámicos) --}}
                         <div x-show="fechaErrors.length > 0" x-cloak id="fecha-error-box"
                              class="rounded-md bg-red-50 border border-red-200 p-3">
@@ -657,7 +508,7 @@
                                 </div>
                             </div>
                         </div>
-                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.ubicacion_id', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
+                        @if ($errors->hasAny(['fechas', 'fechas.*', 'fechas.*.fecha', 'fechas.*.hora_inicio', 'fechas.*.hora_fin']))
                             {{-- Pre-llenar errores server-side en la variable Alpine --}}
                             <script>
                                 document.addEventListener('alpine:init', () => {
@@ -670,112 +521,27 @@
                             </script>
                         @endif
 
-                        {{-- Panel desplegable: Generador de rango de fechas --}}
-                        <div class="rounded-lg border border-gray-200 bg-gray-50/50 overflow-hidden">
-                            {{-- Trigger desplegable --}}
-                            <button type="button"
-                                    @click="if (rangoDisponible) rangoOpen = !rangoOpen"
-                                    :disabled="!rangoDisponible"
-                                    :class="{ 'opacity-50 cursor-not-allowed': !rangoDisponible }"
-                                    class="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                        {{-- Botones agregar y limpiar fechas --}}
+                        <div class="flex items-center gap-4">
+                            <button
+                                type="button"
+                                @click="fechas.push({ fecha: '', hora_inicio: '', hora_fin: '' })"
+                                class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary-hover transition"
                             >
-                                <span class="inline-flex items-center gap-2">
-                                    <x-heroicon-o-calendar-days class="h-4 w-4 text-gray-500" />
-                                    Generar rango de fechas
-                                </span>
-                                <svg class="w-4 h-4 text-gray-400 transition-transform duration-200"
-                                     :class="rangoOpen && 'rotate-180'"
-                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
-                                </svg>
+                                <x-heroicon-o-plus class="h-4 w-4" />
+                                Agregar fecha
                             </button>
-
-                            {{-- Contenido desplegable --}}
-                            <div x-show="rangoOpen"
-                                 x-transition:enter="transition ease-out duration-150"
-                                 x-transition:enter-start="opacity-0 -translate-y-1"
-                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                 x-transition:leave="transition ease-in duration-100"
-                                 x-transition:leave-start="opacity-100 translate-y-0"
-                                 x-transition:leave-end="opacity-0 -translate-y-1"
-                                 x-cloak
-                                 class="border-t border-gray-200 px-4 py-4"
+                            <button
+                                type="button"
+                                x-show="fechas.length > 1"
+                                x-cloak
+                                @click="fechas = [{ fecha: '', hora_inicio: '', hora_fin: '' }]"
+                                class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-danger hover:text-red-700 transition"
                             >
-                                <p class="text-xs text-gray-500 mb-3">Genera multiples fechas con el mismo horario. Maximo 60 dias.</p>
-
-                                <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                                    {{-- Fecha desde --}}
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
-                                        <input
-                                            type="date"
-                                            x-model="rangoDesde"
-                                            :min="new Date().toISOString().slice(0,10)"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                        >
-                                    </div>
-                                    {{-- Fecha hasta --}}
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
-                                        <input
-                                            type="date"
-                                            x-model="rangoHasta"
-                                            :min="new Date().toISOString().slice(0,10)"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                        >
-                                    </div>
-                                    {{-- Hora inicio --}}
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
-                                        <select
-                                            x-model="rangoHoraInicio"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                        >
-                                            <option value="">--:--</option>
-                                            @for ($h = 7; $h <= 22; $h++)
-                                                <option value="{{ sprintf('%02d:00', $h) }}">{{ sprintf('%02d:00', $h) }}</option>
-                                                @if ($h < 22)
-                                                    <option value="{{ sprintf('%02d:30', $h) }}">{{ sprintf('%02d:30', $h) }}</option>
-                                                @endif
-                                            @endfor
-                                        </select>
-                                    </div>
-                                    {{-- Hora fin --}}
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fin</label>
-                                        <select
-                                            x-model="rangoHoraFin"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm text-sm transition-colors duration-150 focus:outline-none focus:border-udg-gold focus:ring-2 focus:ring-udg-gold/30"
-                                        >
-                                            <option value="">--:--</option>
-                                            @for ($h = 7; $h <= 22; $h++)
-                                                <option value="{{ sprintf('%02d:00', $h) }}">{{ sprintf('%02d:00', $h) }}</option>
-                                                @if ($h < 22)
-                                                    <option value="{{ sprintf('%02d:30', $h) }}">{{ sprintf('%02d:30', $h) }}</option>
-                                                @endif
-                                            @endfor
-                                        </select>
-                                    </div>
-                                </div>
-
-                                {{-- Error del rango --}}
-                                <p x-show="rangoError" x-text="rangoError" x-cloak class="mt-2 text-sm text-red-600"></p>
-
-                                {{-- Boton generar --}}
-                                <button
-                                    type="button"
-                                    @click="generarRango()"
-                                    class="mt-3 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-udg-blue focus:ring-offset-2"
-                                >
-                                    <x-heroicon-o-calendar-days class="h-4 w-4" />
-                                    Generar fechas
-                                </button>
-                            </div>
+                                <x-heroicon-o-trash class="h-4 w-4" />
+                                Limpiar fechas
+                            </button>
                         </div>
-                        {{-- Aviso cuando el generador de rango está desactivado --}}
-                        <p x-show="!rangoDisponible" x-cloak class="mt-1 text-xs text-gray-400">
-                            El generador de rango no está disponible cuando hay múltiples fechas agregadas manualmente.
-                        </p>
 
                     </div>
                 </div>
@@ -784,7 +550,7 @@
 
             {{-- Botones --}}
             <div class="mt-8 flex items-center justify-end gap-3">
-                <a href="{{ $parentUrl }}">
+                <a href="{{ $backUrl }}">
                     <x-secondary-button type="button">Cancelar</x-secondary-button>
                 </a>
 
@@ -794,35 +560,64 @@
                     class="inline-flex items-center gap-2 px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-udg-blue focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     <span x-show="!loading" class="inline-flex items-center gap-1.5">
-                        <x-heroicon-o-calendar-days class="h-4 w-4" />
-                        Crear evento
+                        <x-heroicon-o-check class="h-4 w-4" />
+                        Guardar cambios
                     </span>
                     <span x-show="loading" x-cloak class="inline-flex items-center gap-1.5">
                         <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                         </svg>
-                        Creando...
+                        Guardando...
                     </span>
                 </button>
+                <div x-data="eventoFormcancelar({{ $evento->id }})">
+                    @if($evento->activo)
+                        <button
+                        :disabled="loading"
+                        @click="cancelarEvento()"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-udg-blue focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        <span x-show="!loading" class="inline-flex items-center gap-1.5">
+                            <x-heroicon-m-archive-box-x-mark class="h-4 w-4"/>
+                            Cancelar evento
+                        </span>
+                        <span x-show="loading" x-cloak class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Guardando...
+                        </span>
+                    </button>
+                    @else
+                    <button
+                        :disabled="loading"
+                        @click="cancelarEvento()"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-udg-blue focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                        <span x-show="!loading" class="inline-flex items-center gap-1.5">
+                            <x-heroicon-m-archive-box-x-mark class="h-4 w-4"/>
+                            Activar evento
+                        </span>
+                        <span x-show="loading" x-cloak class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            Guardando...
+                        </span>
+                    </button>
+                    @endif
+                </div>
             </div>
 
         </form>
-
-        <button
-    type="button"
-    @click="$dispatch('open-modal', 'email-modal')"
-    class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover"
->
-    Abrir modal de email
-</button>
     </div>
 
     @can('create', App\Models\Organizador::class)
         <x-organizador-create-modal :administraciones="$administraciones" />
     @endcan
-
-    <x-email-modal entity-label="Email" :max-length="150" />
 
     @push('head-scripts')
         <script>
@@ -836,11 +631,6 @@
                     errors: {},
                     fechaErrors: window.__serverFechaErrors || [],
 
-                    /**
-                     * Obtiene los mensajes de error para un campo dado.
-                     * @param {string} field - Nombre del campo (e.g. 'nombre', 'fechas.0.fecha')
-                     * @returns {string[]}
-                     */
                     getErrors(field) {
                         return this.errors[field] || [];
                     },
@@ -861,24 +651,6 @@
 
                         const formData = new FormData(formEl);
 
-                        this.flags = {
-                            sendCta: formData.get('notas_cta')?.trim().length > 0,
-                            sendservicios: formData.get('notas_servicios')?.trim().length > 0,
-                        };
-
-                        const nombre = formData.get('nombre');
-
-                        const organizadorNombre = formData.get('organizador_nombre');
-
-                        // ubicación (del select)
-                        const ubicacionSelect = formEl.querySelector('#ubicacion_id');
-                        const ubicacionNombre = ubicacionSelect?.selectedOptions[0]?.text ?? null;
-
-                        // anexar al formData
-                        formData.append('evento_nombre', nombre);
-                        formData.append('organizador_nombre', organizadorNombre);
-                        formData.append('ubicacion_nombre', ubicacionNombre);
-
                         try {
                             const response = await fetch(formEl.action, {
                                 method: 'POST',
@@ -890,21 +662,8 @@
                             });
 
                             if (response.ok) {
-                                // Éxito: redirigir
                                 const data = await response.json();
-                                //window.location.href = data.redirect;
-                                //return;
-                                // guardar la URL para después
-                                this.successRedirect = data.redirect;
-
-                                // abrir modal
-                                window.dispatchEvent(
-                                    new CustomEvent('open-modal', {
-                                        detail: 'email-modal'
-                                    })
-                                );
-
-                                this.loading = false;
+                                window.location.href = data.redirect;
                                 return;
                             }
 
@@ -914,14 +673,12 @@
                                 this.extractFechaErrors();
                                 this.loading = false;
 
-                                // Scroll al primer error
                                 this.$nextTick(() => {
                                     this.scrollToFirstError(formEl);
                                 });
                                 return;
                             }
 
-                            // Otro error: recargar para mostrar error genérico
                             this.loading = false;
                             window.location.reload();
                         } catch (e) {
@@ -930,10 +687,6 @@
                         }
                     },
 
-                    /**
-                     * Extrae los errores de fechas del objeto de errores general
-                     * y los agrupa en un array plano para el bloque de error de fechas.
-                     */
                     extractFechaErrors() {
                         const msgs = [];
                         for (const [key, values] of Object.entries(this.errors)) {
@@ -944,17 +697,12 @@
                         this.fechaErrors = msgs;
                     },
 
-                    /**
-                     * Hace scroll al primer elemento con error visible.
-                     */
                     scrollToFirstError(formEl) {
-                        // Buscar el primer contenedor de error AJAX visible
                         const errorEl = formEl.querySelector('[data-ajax-error]:not([style*="display: none"])');
                         if (errorEl) {
                             errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             return;
                         }
-                        // Fallback: bloque de errores de fechas
                         var fechaBox = document.getElementById('fecha-error-box');
                         if (this.fechaErrors.length > 0 && fechaBox) {
                             fechaBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -962,6 +710,34 @@
                     }
                 };
             };
+
+            function eventoFormcancelar(id) {
+            return {
+                loading: false,
+
+                async cancelarEvento() {
+                    this.loading = true;
+
+                    try {
+                        const response = await fetch(`/eventos/${id}/cancelar`, {
+                            method: 'PUT',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
+                    } finally {
+                        this.loading = false;
+                    }
+                }
+            }
+}
         </script>
     @endpush
 

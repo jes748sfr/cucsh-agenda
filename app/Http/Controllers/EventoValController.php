@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreEventoRequest;
-use App\Http\Requests\UpdateEventoRequest;
+use App\Http\Requests\StoreEventoValRequest;
+use App\Http\Requests\UpdateEventoValRequest;
 use App\Mail\NotaCtaNotificacion;
 use App\Mail\NotaGeneralesNotificacion;
 use App\Mail\NotaDifusionNotificacion;
 use App\Models\Administracion;
-use App\Models\Evento;
+use App\Models\EventoVal;
 use App\Models\EventoTipo;
 use App\Models\Institucion;
 use App\Models\Organizador;
@@ -27,9 +27,9 @@ class EventoController extends Controller
      */
     public function index()
     {
-        $this->authorize('viewAny', Evento::class);
+        $this->authorize('viewAny', EventoVal::class);
 
-        $query = Evento::with(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel', 'fechas'])
+        $query = EventoVal::with(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel', 'fechas'])
             ->latest();
 
         // Filtro por estado
@@ -52,7 +52,7 @@ class EventoController extends Controller
         $eventos = $query->paginate(10)->withQueryString();
         $tipos = EventoTipo::orderBy('nombre')->get();
 
-        return view('eventos.index', compact('eventos', 'tipos'));
+        return view('eventosVal.index', compact('eventos', 'tipos'));
     }
 
     /**
@@ -61,9 +61,9 @@ class EventoController extends Controller
      */
     public function create()
     {
-        $this->authorize('create', Evento::class);
+        $this->authorize('create', EventoVal::class);
 
-        return view('eventos.create', [
+        return view('eventosVal.create', [
             ...$this->catalogos(),
             'prefillFecha' => request()->query('fecha'),
             'prefillHoraInicio' => request()->query('hora_inicio'),
@@ -74,15 +74,15 @@ class EventoController extends Controller
     /**
      * Almacenar nuevo evento con sus fechas.
      */
-    public function store(StoreEventoRequest $request)
+    public function store(StoreEventoValRequest $request)
     {
-        $this->authorize('create', Evento::class);
+        $this->authorize('create', EventoVal::class);
 
         $validated = $request->validated();
 
         /** @var Evento $evento */
         $evento = DB::transaction(function () use ($validated, $request) {
-            $evento = Evento::create([
+            $evento = EventoVal::create([
                 ...\Arr::except($validated, ['fechas']),
                 'usuario_id' => $request->user()->id,
             ]);
@@ -118,25 +118,25 @@ class EventoController extends Controller
     /**
      * Detalle de un evento con sus fechas.
      */
-    public function show(Evento $evento)
+    public function show(EventoVal $evento)
     {
         $this->authorize('view', $evento);
 
         $evento->load(['eventoTipo', 'institucion', 'organizador.administracion', 'ubicacionRel', 'fechas']);
 
-        return view('eventos.show', compact('evento'));
+        return view('eventosVal.show', compact('evento'));
     }
 
     /**
      * Formulario de edición de evento.
      */
-    public function edit(Evento $evento)
+    public function edit(EventoVal $evento)
     {
         $this->authorize('update', $evento);
 
         $evento->load('fechas');
 
-        return view('eventos.edit', [
+        return view('eventosVal.edit', [
             'evento' => $evento,
             ...$this->catalogos(),
         ]);
@@ -145,7 +145,7 @@ class EventoController extends Controller
     /**
      * Actualizar evento y reemplazar sus fechas.
      */
-    public function update(UpdateEventoRequest $request, Evento $evento)
+    public function update(UpdateEventoValRequest $request, EventoVal $evento)
     {
         $this->authorize('update', $evento);
 
@@ -185,7 +185,7 @@ class EventoController extends Controller
     /**
      * Eliminar evento (cascade elimina fechas).
      */
-    public function destroy(Evento $evento)
+    public function destroy(EventoVal $evento)
     {
         $this->authorize('delete', $evento);
 
@@ -199,7 +199,7 @@ class EventoController extends Controller
      * Enviar notificacion al CTA con el resumen del evento.
      * Si CTA_EMAIL no esta configurado, se omite con un warning en log.
      */
-    private function enviarNotificacionCta(Evento $evento, bool $esActualizacion): void
+    private function enviarNotificacionCta(EventoVal $evento, bool $esActualizacion): void
     {
         $ctaEmail = config('cucsh.cta_email');
 
@@ -224,7 +224,7 @@ class EventoController extends Controller
         }
     }
 
-    private function enviarNotificacionServiciosGenerales(Evento $evento, bool $esActualizacion): void
+    private function enviarNotificacionServiciosGenerales(EventoVal $evento, bool $esActualizacion): void
     {
         $generalesEmail = config('cucsh.generales_email');
 
@@ -249,7 +249,7 @@ class EventoController extends Controller
         }
     }
 
-    private function enviarNotificacionDifusion(Evento $evento, bool $esActualizacion): void
+    private function enviarNotificacionDifusion(EventoVal $evento, bool $esActualizacion): void
     {
         $difusionEmail = config('cucsh.difusion_email');
 
@@ -301,7 +301,7 @@ class EventoController extends Controller
         );
     }
 
-    public function cancelar(Request $request, Evento $evento)
+    public function cancelar(Request $request, EventoVal $evento)
     {
         $evento->update([
             'activo' => !$evento->activo,

@@ -22,6 +22,12 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'eventos.editar']);
         Permission::create(['name' => 'eventos.eliminar']);
 
+        // EventosVal
+        Permission::create(['name' => 'eventosVal.ver']);
+        Permission::create(['name' => 'eventosVal.crear']);
+        Permission::create(['name' => 'eventosVal.editar']);
+        Permission::create(['name' => 'eventosVal.eliminar']);
+
         // Catalogos (tipos evento, instituciones, administraciones)
         Permission::create(['name' => 'catalogos.ver']);
         Permission::create(['name' => 'catalogos.crear']);
@@ -58,6 +64,9 @@ class RolesAndPermissionsSeeder extends Seeder
                 'eventos.crear',
                 'eventos.editar',
                 'eventos.eliminar',
+                'eventosVal.ver',
+                'eventosVal.editar',
+                'eventosVal.eliminar',
                 'catalogos.ver',
                 'organizadores.ver',
                 'organizadores.crear',
@@ -69,6 +78,11 @@ class RolesAndPermissionsSeeder extends Seeder
         Role::create(['name' => 'consultor'])
             ->givePermissionTo([
                 'eventos.ver',
+
+                'eventosVal.ver',
+                'eventosVal.crear',
+                'eventosVal.eliminar',
+
                 'catalogos.ver',
                 'organizadores.ver',
                 'reportes.generar',

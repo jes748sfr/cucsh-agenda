@@ -1389,9 +1389,16 @@ document.addEventListener('DOMContentLoaded', function () {
     window.__calendarPublicMode
 ) {
 
-    const date = ev.start
+    console.log('=== DEBUG EVENTO ===');
+    console.log('ev.start (obj):', ev.start);
+    console.log('ev.startStr:', ev.startStr);
+    console.log('toISOString:', ev.start?.toISOString());
+    console.log('view type:', info.view.type);
+
+    /* const date = ev.start
         ? ev.start.toISOString().substring(0, 10)
-        : null;
+        : null; */
+    const date = ev.startStr.split('T')[0];
 
     const params = new URLSearchParams();
     params.set('start', date);
